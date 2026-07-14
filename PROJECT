@@ -1,5 +1,5 @@
 builderVersion: v26.4.2
 domain: eda.edacommunity.com
 name: topoview
-registry: ghcr.io/kkayhan/edaapp_topoview
+registry: ghcr.io/kkayhan/edaapp_grafana
 vendor: edacommunity
