@@ -36,7 +36,7 @@ import layout as layout_mod
 import svggen
 import topology as topo_mod
 
-VERSION = "v26.4.3-1"
+VERSION = "v26.4.3-2"
 
 RECONCILE_INTERVAL = int(os.environ.get("RECONCILE_INTERVAL", "30"))
 GRAFANA_URL = os.environ.get("GRAFANA_URL", "http://grafana.eda-system.svc.cluster.local:3000")
@@ -50,9 +50,19 @@ DATA_TTL = float(os.environ.get("DATA_TTL", "4"))
 
 # Grafana is fronted by the EDA HttpProxy named 'grafana'. Grafana's root URL must
 # match the cluster's external address, which we auto-detect from EngineConfig
-# (never hardcode -- every cluster differs).
-GRAFANA_DEPLOY = "grafana"
+# (never hardcode -- every cluster differs). The bundle Deployment reads it from
+# this controller-owned ConfigMap via configMapKeyRef, so the app-loader
+# reasserting the bundle never changes the Deployment spec (= no needless rolls).
 GRAFANA_PROXY_PATH = "/core/httpproxy/v1/grafana/"
+GRAFANA_ROOTURL_CM = "topoview-grafana-rooturl"
+# Scoped so we only ever restart THIS bundle's Grafana (the pod template carries
+# both labels), never some other eda-system pod that happens to be app=grafana.
+GRAFANA_LABEL = "app=grafana,eda.nokia.com/app-group=topoview"
+APP_LABELS = {"eda.nokia.com/app": "eda-topoview"}
+# Annotation on the CM recording the root_url Grafana was last restarted FOR, so a
+# restart fires exactly once per value change and survives a failed pod-delete
+# (retried until it sticks) -- without ever reading the running value via the LB.
+ROOTURL_ANNO = "topoview.eda.edacommunity.com/restarted-for"
 
 CRD_GROUP = "topoview.eda.edacommunity.com"
 CRD_VERSION = "v1alpha1"
@@ -197,30 +207,52 @@ def _detect_root_url():
         return None
 
 
+def _write_rooturl_cm(url, applied, exists):
+    annos = {ROOTURL_ANNO: applied} if applied else None
+    fn = k8s.replace_configmap if exists else k8s.create_configmap
+    fn(GRAFANA_ROOTURL_CM, POD_NAMESPACE, {"root_url": url}, APP_LABELS, annos)
+
+
 def _ensure_grafana_root_url():
-    """Point Grafana's GF_SERVER_ROOT_URL at the auto-detected external host.
-    Patches (and rolls) the Grafana Deployment only when the value differs."""
+    """Own Grafana's root URL in a controller-managed ConfigMap (the grafana
+    Deployment references it via configMapKeyRef). Because the Deployment spec
+    never changes, the app-loader reasserting the bundle does NOT roll Grafana.
+
+    The restart decision is driven entirely by the CM's own state -- its
+    `root_url` value plus a `restarted-for` annotation recording which value
+    Grafana was last restarted to pick up -- never by reading the running value
+    through the load-balancing Service. So Grafana is restarted exactly once per
+    real value change (first boot / external-host change): the annotation is set
+    only after the pod-delete succeeds, so a failed delete is retried next cycle,
+    and a steady state (value applied) does nothing."""
     url = _detect_root_url()
     if not url:
         return
     try:
-        dep = k8s.read_deployment(GRAFANA_DEPLOY, POD_NAMESPACE)
-        if not dep:
-            return
-        containers = ((((dep.get("spec") or {}).get("template") or {}).get("spec")) or {}).get("containers") or []
-        cur = None
-        for c in containers:
-            for e in (c.get("env") or []):
-                if e.get("name") == "GF_SERVER_ROOT_URL":
-                    cur = e.get("value")
-        if cur == url:
-            return
-        patch = {"spec": {"template": {"spec": {"containers": [
-            {"name": GRAFANA_DEPLOY, "env": [{"name": "GF_SERVER_ROOT_URL", "value": url}]}]}}}}
-        k8s.patch_deployment(GRAFANA_DEPLOY, POD_NAMESPACE, patch)
-        logger.info("Set Grafana root URL to %s (was %s)", url, cur)
+        cm = k8s.read_configmap(GRAFANA_ROOTURL_CM, POD_NAMESPACE)
+        exists = cm is not None
+        data_url = ((cm or {}).get("data") or {}).get("root_url")
+        applied = (((cm or {}).get("metadata") or {}).get("annotations") or {}).get(ROOTURL_ANNO)
+        if data_url == url and applied == url:
+            return   # steady state: value present and Grafana already restarted for it
+        # 1. Ensure the CM carries the desired value (keep the old applied marker).
+        if data_url != url:
+            _write_rooturl_cm(url, applied, exists)
+            exists = True
+        # 2. Restart Grafana once so it re-reads the value, then record it as applied.
+        #    Skip pods already Terminating so a fresh replacement is never killed.
+        if applied != url:
+            n = 0
+            for p in k8s.list_pods(POD_NAMESPACE, GRAFANA_LABEL):
+                meta = p.get("metadata") or {}
+                if meta.get("deletionTimestamp") or not meta.get("name"):
+                    continue
+                k8s.delete_pod(meta["name"], POD_NAMESPACE)
+                n += 1
+            _write_rooturl_cm(url, url, True)
+            logger.info("grafana root_url -> %s (was %s); restarted %d pod(s)", url, data_url, n)
     except Exception as e:
-        logger.warning("Failed to set Grafana root URL: %s", e)
+        logger.warning("Failed to apply grafana root_url: %s", e)
 
 
 def _update_status(health, message, discovered, dashboards, menu_uid):

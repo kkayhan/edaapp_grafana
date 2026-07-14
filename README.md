@@ -129,7 +129,7 @@ kubectl apply -f catalog.yaml
 ```
 
 TopoView then appears in the EDA UI **Store** (or install headlessly with an `AppInstaller` CR for
-`appId: topoview.eda.edacommunity.com`, `catalog: kkayhan-catalog`, `version: v26.4.3-1`).
+`appId: topoview.eda.edacommunity.com`, `catalog: kkayhan-catalog`, `version: v26.4.3-2`).
 
 ### Manual deploy (dev)
 
@@ -140,9 +140,12 @@ kubectl apply -f topoview/manifests/          # all land in eda-system
 
 The controller does the rest automatically:
 
-- **EDA host is auto-detected.** The `GF_SERVER_ROOT_URL` host is a placeholder
-  (`PENDING-AUTODETECT`); the controller reads the cluster's external address from `EngineConfig`
-  and patches Grafana on the first reconcile — nothing to hardcode, works on any cluster.
+- **EDA host is auto-detected.** The controller reads the cluster's external address from
+  `EngineConfig` and writes it into the `topoview-grafana-rooturl` ConfigMap, which Grafana's
+  `GF_SERVER_ROOT_URL` references (`configMapKeyRef`). Because that value is owned by the controller
+  — not baked into the Deployment — the EDA app-loader reasserting the bundle never rolls Grafana;
+  the controller restarts it exactly once, only when the detected host actually changes. Nothing to
+  hardcode, works on any cluster.
 - **Live telemetry needs no setup** — the controller authenticates to eda-api itself using the
   cluster's own EDA secrets and serves the flow panel over its `/eql/<ns>.json` endpoint.
 

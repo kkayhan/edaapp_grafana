@@ -38,16 +38,11 @@ rules:
     resources: ["secrets"]
     verbs: ["get"]
     resourceNames: ["keycloak-admin-secret", "eda-api-ca", "eda-realm-auth-secret"]
-  # Auto-detect the cluster's external host (never hardcoded) to point Grafana's
-  # root URL at it: read EngineConfig, patch the bundled Grafana Deployment.
+  # Auto-detect the cluster's external host (never hardcoded) for Grafana's root URL.
   - apiGroups: ["core.eda.nokia.com"]
     resources: ["engineconfigs"]
     verbs: ["get"]
     resourceNames: ["engine-config"]
-  - apiGroups: ["apps"]
-    resources: ["deployments"]
-    verbs: ["get", "patch"]
-    resourceNames: ["grafana"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -59,5 +54,34 @@ subjects:
     namespace: eda-system
 roleRef:
   kind: ClusterRole
+  name: eda-topoview
+  apiGroup: rbac.authorization.k8s.io
+---
+# Namespaced (eda-system only): own the Grafana root_url ConfigMap and restart
+# Grafana (delete its pod) when the detected host changes. Bounded to eda-system.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: eda-topoview
+  namespace: eda-system
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "create", "update", "patch"]
+  - apiGroups: [""]
+    resources: ["pods"]
+    verbs: ["get", "list", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: eda-topoview
+  namespace: eda-system
+subjects:
+  - kind: ServiceAccount
+    name: eda-topoview
+    namespace: eda-system
+roleRef:
+  kind: Role
   name: eda-topoview
   apiGroup: rbac.authorization.k8s.io

@@ -124,21 +124,24 @@ def read_namespaced_cr(group, version, namespace, plural, name):
         raise
 
 
-def read_deployment(name, namespace):
-    path = f"/apis/apps/v1/namespaces/{quote(namespace, safe='')}/deployments/{quote(name, safe='')}"
+def list_pods(namespace, label_selector):
+    """List pods in a namespace matching a label selector. Returns .items."""
+    path = (f"/api/v1/namespaces/{quote(namespace, safe='')}/pods?"
+            + urlencode({"labelSelector": label_selector}))
+    obj = _request("GET", path)
+    return (obj or {}).get("items", [])
+
+
+def delete_pod(name, namespace):
+    """Delete a pod (used to restart Grafana so it re-reads a changed root_url).
+    404 -> None."""
+    path = f"/api/v1/namespaces/{quote(namespace, safe='')}/pods/{quote(name, safe='')}"
     try:
-        return _request("GET", path)
+        return _request("DELETE", path)
     except urllib.error.HTTPError as e:
         if e.code == 404:
             return None
         raise
-
-
-def patch_deployment(name, namespace, patch_body):
-    """Strategic-merge patch a Deployment (env lists merge by container/env name)."""
-    path = f"/apis/apps/v1/namespaces/{quote(namespace, safe='')}/deployments/{quote(name, safe='')}"
-    return _request("PATCH", path, patch_body,
-                    content_type="application/strategic-merge-patch+json")
 
 
 def list_cr_all_namespaces(group, version, plural, label_selector=None):
@@ -173,11 +176,13 @@ def read_configmap(name, namespace):
         raise
 
 
-def create_configmap(name, namespace, data, labels=None):
+def create_configmap(name, namespace, data, labels=None, annotations=None):
     path = f"/api/v1/namespaces/{quote(namespace, safe='')}/configmaps"
     meta = {"name": name, "namespace": namespace}
     if labels:
         meta["labels"] = labels
+    if annotations:
+        meta["annotations"] = annotations
     body = {
         "apiVersion": "v1",
         "kind": "ConfigMap",
@@ -187,13 +192,15 @@ def create_configmap(name, namespace, data, labels=None):
     return _request("POST", path, body)
 
 
-def replace_configmap(name, namespace, data, labels=None):
+def replace_configmap(name, namespace, data, labels=None, annotations=None):
     """PUT (replace) a ConfigMap's data. Used to update a license ConfigMap when a
     license is re-attached to an existing image (create returned 409)."""
     path = f"/api/v1/namespaces/{quote(namespace, safe='')}/configmaps/{quote(name, safe='')}"
     meta = {"name": name, "namespace": namespace}
     if labels:
         meta["labels"] = labels
+    if annotations:
+        meta["annotations"] = annotations
     body = {
         "apiVersion": "v1",
         "kind": "ConfigMap",
