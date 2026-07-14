@@ -81,45 +81,67 @@ topoview/
       svggen.py                 layout → SVG + flow-panel panelConfig
       dashboard.py              flow-panel dashboard + menu dashboard JSON
       grafana.py  k8s.py        Grafana API + Kubernetes API clients
-  manifests/                    bundled stack shipped as cr: components
-    00-namespace 01-grafana-secret 10/11-prometheus 20/21-grafana
-    30-exports 40-grafana-httpproxy app_deployment rbac
+  docs/                         Store app page (index.md, README, CHANGELOG, …)
+  manifests/                    bundled stack, deployed into eda-system
+    01-grafana-secret 10/11-prometheus 20/21-grafana
+    40-grafana-httpproxy app_deployment rbac
+    30-exports.yaml             (NOT a bundle component — the controller creates
+                                 these Export CRs at runtime; kept here for reference)
 examples/localtest/             offline generator harness + synthetic fabric fixtures
 ```
 
 ---
 
-## Deploy
+## Install
 
-Prerequisites: a Nokia EDA cluster (tested on **26.4.3**) with the `prom.eda.nokia.com` exporter app
-installed (it serves the `/core/httpproxy/v1/prometheus-exporter/metrics` endpoint Prometheus scrapes).
+Prerequisite: a Nokia EDA cluster (tested on **26.4.3**) with the `prom.eda.nokia.com` exporter app
+(installed automatically as a dependency). Everything installs into the `eda-system` namespace.
 
-**Before you apply**, edit two placeholder values:
+### From the EDA Store (recommended)
 
-1. `topoview/manifests/21-grafana.yaml` → `GF_SERVER_ROOT_URL`: set `YOUR-EDA-HOST` to the address
-   you open the EDA UI at (Grafana is served at `https://<that-host>/core/httpproxy/v1/grafana/`).
-2. `topoview/manifests/01-grafana-secret.yaml` → set a real `admin-password` (the committed value is
-   a placeholder; this password only protects the controller's write path — humans are anonymous
-   read-only).
+Published in the [kkayhan/eda-catalog](https://github.com/kkayhan/eda-catalog) catalog. Register the
+catalog, then install:
 
-Then either package it as an EDA app with `edabuilder` and install from the EDA Store, or apply the
-manifests directly for a quick dev deploy:
+```yaml
+# catalog.yaml
+apiVersion: appstore.eda.nokia.com/v1
+kind: Catalog
+metadata: { name: kkayhan-catalog, namespace: eda-system }
+spec:
+  enabled: true
+  remoteType: git
+  remoteURL: https://github.com/kkayhan/eda-catalog.git
+  refreshInterval: 180
+  title: kkayhan community catalog
+```
+
+```bash
+kubectl apply -f catalog.yaml
+```
+
+TopoView then appears in the EDA UI **Store** (or install headlessly with an `AppInstaller` CR for
+`appId: topoview.eda.edacommunity.com`, `catalog: kkayhan-catalog`).
+
+### Manual deploy (dev)
 
 ```bash
 kubectl apply -f topoview/crds/
-kubectl apply -f topoview/manifests/          # applied in filename order (00 → 40)
+kubectl apply -f topoview/manifests/          # all land in eda-system
 ```
 
-The controller image is built from `topoview/build/`:
+**Set two placeholders first** for a manual deploy (the Store bundle bakes working values):
 
-```bash
-docker build -t <your-registry>/topoview-controller:v0.2.1 topoview/build/
-docker push  <your-registry>/topoview-controller:v0.2.1
-# then set that image in topoview/manifests/app_deployment.yaml
-```
+1. `topoview/manifests/21-grafana.yaml` → `GF_SERVER_ROOT_URL`: replace `YOUR-EDA-HOST` with the
+   address you open the EDA UI at.
+2. `topoview/manifests/01-grafana-secret.yaml` → set a real `admin-password` (placeholder shipped;
+   it only protects the controller's write path — humans are anonymous read-only).
 
-Open `https://<your-eda-host>/core/httpproxy/v1/grafana/?kiosk` — you land on the menu, pick a
-fabric, done. (`?kiosk` hides Grafana's own chrome; it stays hidden as you navigate.)
+The controller creates the two `Export` CRs (`30-exports.yaml`) itself, so you don't apply those.
+
+### Open it
+
+`https://<your-eda-host>/core/httpproxy/v1/grafana/?kiosk` — land on the menu, pick a fabric, done.
+(`?kiosk` hides Grafana's own chrome; it stays hidden as you navigate.)
 
 ---
 

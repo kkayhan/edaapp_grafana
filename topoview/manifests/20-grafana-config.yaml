@@ -16,7 +16,7 @@ data:
       - name: Prometheus
         type: prometheus
         access: proxy
-        url: http://prometheus.eda-topoview.svc.cluster.local:9090
+        url: http://prometheus.eda-system.svc.cluster.local:9090
         isDefault: true
         uid: PBFA97CFB590B2093
         editable: false
@@ -86,4 +86,4 @@ data:
 kind: ConfigMap
 metadata:
   name: topoview-grafana-config
-  namespace: eda-topoview
+  namespace: eda-system

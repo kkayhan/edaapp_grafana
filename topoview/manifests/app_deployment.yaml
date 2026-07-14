@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: eda-topoview
-  namespace: eda-topoview
+  namespace: eda-system
   labels:
     eda.nokia.com/app: eda-topoview
     eda.nokia.com/app-group: control-plane
@@ -28,7 +28,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: topoview-controller
-          image: ghcr.io/kkayhan/edaapp_grafana/topoview-controller:v0.2.1
+          image: ghcr.io/kkayhan/edaapp_grafana/topoview-controller:v0.2.2
           imagePullPolicy: IfNotPresent
           env:
             - name: POD_NAMESPACE
@@ -38,7 +38,7 @@ spec:
             - name: RECONCILE_INTERVAL
               value: "30"
             - name: GRAFANA_URL
-              value: "http://grafana.eda-topoview.svc.cluster.local:3000"
+              value: "http://grafana.eda-system.svc.cluster.local:3000"
             - name: GRAFANA_ADMIN_USER
               valueFrom:
                 secretKeyRef:

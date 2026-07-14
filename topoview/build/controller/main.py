@@ -33,7 +33,7 @@ import layout as layout_mod
 import svggen
 import topology as topo_mod
 
-VERSION = "v0.2.1"
+VERSION = "v0.2.2"
 
 RECONCILE_INTERVAL = int(os.environ.get("RECONCILE_INTERVAL", "30"))
 GRAFANA_URL = os.environ.get("GRAFANA_URL", "http://grafana.eda-topoview.svc.cluster.local:3000")
@@ -49,6 +49,24 @@ CRD_NAME = "default"
 
 # never draw dashboards for infrastructure namespaces
 SYSTEM_NS = {"eda-system", "eda-topoview", "kube-system"}
+
+# The two Prometheus Export CRs the flow panel needs (interface oper-state +
+# traffic-rate), ns-agnostic in eda-system. An EDA app bundle may not ship
+# prom.eda.nokia.com CRs (foreign group), so the controller creates them itself.
+EXPORT_GROUP, EXPORT_VERSION, EXPORT_PLURAL, EXPORT_NS = \
+    "prom.eda.nokia.com", "v1alpha1", "exports", "eda-system"
+EXPORTS = [
+    {"name": "td-interface",
+     "spec": {"exports": [{"path": ".namespace.node.srl.interface",
+                           "mappings": [{"source": "enable", "destination": "1"},
+                                        {"source": "disable", "destination": "0"},
+                                        {"source": "up", "destination": "1"},
+                                        {"source": "down", "destination": "0"}],
+                           "metricName": {"regex": "namespace_(.+)", "replacement": "$1"}}]}},
+    {"name": "td-interface-traffic-rate",
+     "spec": {"exports": [{"path": ".namespace.node.srl.interface.traffic-rate",
+                           "metricName": {"regex": "namespace_(.+)", "replacement": "$1"}}]}},
+]
 
 DEFAULTS = {
     "namespaceExclude": [],
@@ -133,6 +151,24 @@ def _ensure_default_cr():
         logger.info("Created default %s CR", CRD_KIND)
     except Exception as e:
         logger.warning("Failed to ensure default %s: %s", CRD_KIND, e)
+
+
+def _ensure_exports():
+    """Create the interface oper-state + traffic-rate Export CRs in eda-system if
+    absent (self-heals if deleted). These drive the metrics the flow panel reads."""
+    for e in EXPORTS:
+        try:
+            if k8s.read_namespaced_cr(EXPORT_GROUP, EXPORT_VERSION, EXPORT_NS,
+                                      EXPORT_PLURAL, e["name"]):
+                continue
+            body = {"apiVersion": f"{EXPORT_GROUP}/{EXPORT_VERSION}", "kind": "Export",
+                    "metadata": {"name": e["name"], "namespace": EXPORT_NS},
+                    "spec": e["spec"]}
+            k8s.create_namespaced_cr(EXPORT_GROUP, EXPORT_VERSION, EXPORT_NS,
+                                     EXPORT_PLURAL, body)
+            logger.info("Created Export %s", e["name"])
+        except Exception as ex:
+            logger.warning("Failed to ensure Export %s: %s", e["name"], ex)
 
 
 def _update_status(health, message, discovered, dashboards, menu_uid):
@@ -253,6 +289,7 @@ def main():
     _start_health_server()
     _health.update(state="ok", message="started")
     _ensure_default_cr()
+    _ensure_exports()
 
     while not shutdown_event.is_set():
         cycle_start = time.time()

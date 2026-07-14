@@ -9,4 +9,4 @@ metadata:
   namespace: eda-system
 spec:
   authType: atDestination
-  rootUrl: http://grafana.eda-topoview.svc.cluster.local:3000/
+  rootUrl: http://grafana.eda-system.svc.cluster.local:3000/

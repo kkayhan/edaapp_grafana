@@ -15,4 +15,4 @@ data:
 kind: ConfigMap
 metadata:
   name: topoview-prometheus-config
-  namespace: eda-topoview
+  namespace: eda-system

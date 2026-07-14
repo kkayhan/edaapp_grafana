@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus
-  namespace: eda-topoview
+  namespace: eda-system
   labels:
     app: prometheus
     eda.nokia.com/app-group: topoview
@@ -57,7 +57,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus
-  namespace: eda-topoview
+  namespace: eda-system
   labels:
     app: prometheus
 spec:

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
-  namespace: eda-topoview
+  namespace: eda-system
   labels:
     app: grafana
     eda.nokia.com/app-group: topoview
@@ -53,8 +53,7 @@ spec:
               value: "light"
             - name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH
               value: "/var/lib/grafana/dashboards/menu.json"
-            # served behind the EDA HttpProxy; assets resolve under this prefix.
-            # Set this to YOUR EDA host (the address you open the EDA UI at).
+            # served behind the EDA HttpProxy; assets resolve under this prefix
             - name: GF_SERVER_ROOT_URL
               value: "https://YOUR-EDA-HOST/core/httpproxy/v1/grafana/"
             - name: GF_LOG_LEVEL
@@ -97,7 +96,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: grafana
-  namespace: eda-topoview
+  namespace: eda-system
   labels:
     app: grafana
 spec:

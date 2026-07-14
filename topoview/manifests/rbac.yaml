@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: eda-topoview
-  namespace: eda-topoview
+  namespace: eda-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -31,6 +31,12 @@ rules:
   - apiGroups: ["topoview.eda.edacommunity.com"]
     resources: ["topoviewconfigs/status"]
     verbs: ["get", "update", "patch"]
+  # Ensure the two Prometheus Export CRs (interface oper-state + traffic-rate)
+  # the flow panel needs. An EDA app can't ship prom.eda.nokia.com CRs in its
+  # bundle (foreign group), so the controller creates them at runtime instead.
+  - apiGroups: ["prom.eda.nokia.com"]
+    resources: ["exports"]
+    verbs: ["get", "list", "watch", "create", "update", "patch"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
@@ -39,7 +45,7 @@ metadata:
 subjects:
   - kind: ServiceAccount
     name: eda-topoview
-    namespace: eda-topoview
+    namespace: eda-system
 roleRef:
   kind: ClusterRole
   name: eda-topoview
