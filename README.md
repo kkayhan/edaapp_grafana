@@ -38,8 +38,10 @@ dependencies**: telemetry is read straight from EDA over EQL.
 
 ## How it works
 
-TopoView bundles just **Grafana** (no Prometheus, no Loki — EDA has native logging) plus a small
-Python controller. Everything installs into the `eda-system` namespace.
+TopoView bundles just a **custom Grafana** (no Prometheus, no Loki — EDA has native logging) plus a
+small Python controller. Everything installs into the `eda-system` namespace. The Grafana image has
+the two required plugins **baked in** — so it installs on an **air-gapped cluster** with no
+grafana.com access — and its chrome is **hidden**, so users only see the fabric menu and maps.
 
 ```
                               eda-system namespace
@@ -82,6 +84,9 @@ topoview/
   manifest.yaml                 EDA app manifest (CRD + ordered cr: components)
   api/v1alpha1/                 Go types for the TopoViewConfig CRD
   crds/  openapiv3/             generated CRD + OpenAPI schema
+  build-grafana/                custom Grafana image: flow-panel + infinity baked in
+    Dockerfile                  (air-gap ready) and chrome-hiding CSS injected
+    topoview-kiosk.css          CSS that hides Grafana's nav / controls
   build/
     Dockerfile                  controller image
     controller/                 the controller (Python, stdlib only)
@@ -129,7 +134,18 @@ kubectl apply -f catalog.yaml
 ```
 
 TopoView then appears in the EDA UI **Store** (or install headlessly with an `AppInstaller` CR for
-`appId: topoview.eda.edacommunity.com`, `catalog: kkayhan-catalog`, `version: v26.4.3-2`).
+`appId: topoview.eda.edacommunity.com`, `catalog: kkayhan-catalog`, `version: v26.4.3-3`).
+
+### Air-gapped cluster (offline)
+
+Each release ships an **air-gap bundle** attached to the catalog repo's GitHub Release
+(`apps/topoview.eda.edacommunity.com/<version>`). It contains OCI archives of all three images
+(bundle, controller, and the custom Grafana with its plugins baked in), a git bundle of the catalog,
+pre-filled `Registry` + `Catalog` manifests, and an `INSTALL-GUIDE.md`. On the Assets VM you `skopeo
+copy` the images into a local registry, push the catalog git bundle into a local Gitea, `kubectl
+apply` the manifests, then install from the Store — no internet needed. Because the plugins are baked
+into the Grafana image, nothing is fetched from grafana.com at runtime. Full steps are in the
+bundle's `INSTALL-GUIDE.md`.
 
 ### Manual deploy (dev)
 
@@ -155,8 +171,9 @@ write path — humans are anonymous read-only).
 
 ### Open it
 
-`https://<your-eda-host>/core/httpproxy/v1/grafana/?kiosk` — land on the menu, pick a fabric, done.
-(`?kiosk` hides Grafana's own chrome; it stays hidden as you navigate.)
+`https://<your-eda-host>/core/httpproxy/v1/grafana/` — land on the menu, pick a fabric, done.
+Grafana's chrome (top bar, side menu, time picker, share/export) is hidden by the custom image's
+baked-in CSS, so users only ever see the fabric menu and the maps — no `?kiosk` needed.
 
 ---
 

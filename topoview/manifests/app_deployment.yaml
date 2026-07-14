@@ -28,7 +28,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: topoview-controller
-          image: ghcr.io/kkayhan/edaapp_grafana/topoview-controller:v26.4.3-2
+          image: ghcr.io/kkayhan/edaapp_grafana/topoview-controller:v26.4.3-3
           imagePullPolicy: IfNotPresent
           env:
             - name: POD_NAMESPACE

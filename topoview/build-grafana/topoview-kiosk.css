@@ -1,0 +1,15 @@
+/* TopoView kiosk: hide all Grafana chrome so users only pick a fabric from the
+   menu and view it. Targets stable structural classes + data-testids; the
+   emotion css-<hash> prefixes vary per build so only the readable label suffix
+   ([class*="page-container"]) and plain classes (.main-view) are relied on. */
+
+/* Left mega-menu (Home/Starred/Dashboards/Alerting); top app bar (search,
+   help, sign-in, breadcrumbs, Edit/Export/Share); dashboard controls row
+   (time picker, zoom-out, Refresh, refresh interval). */
+[data-testid="data-testid navigation mega-menu"],
+.main-view > header,
+[data-testid="data-testid Nav toolbar"],
+[data-testid="data-testid dashboard controls"] { display: none !important; }
+
+/* Reclaim the left space the (now hidden) docked mega-menu reserved. */
+[class*="page-container"] { padding-left: 0 !important; }
