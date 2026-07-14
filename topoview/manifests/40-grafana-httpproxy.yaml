@@ -1,0 +1,12 @@
+# Exposes the bundled Grafana in the EDA UI:
+#   ${EDA_URL}/core/httpproxy/v1/grafana/           (add ?kiosk for the chrome-free view)
+# The EDA/Keycloak session is the outer door; Grafana itself is anonymous
+# read-only behind it (no Grafana login).
+apiVersion: core.eda.nokia.com/v1
+kind: HttpProxy
+metadata:
+  name: grafana
+  namespace: eda-system
+spec:
+  authType: atDestination
+  rootUrl: http://grafana.eda-topoview.svc.cluster.local:3000/

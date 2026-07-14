@@ -1,0 +1,245 @@
+{
+    "apiVersion": "v1",
+    "items": [
+        {
+            "apiVersion": "core.eda.nokia.com/v1",
+            "kind": "TopoNode",
+            "metadata": {
+                "creationTimestamp": "2026-07-06T10:35:03Z",
+                "generation": 2,
+                "labels": {
+                    "eda.nokia.com/role": "leaf",
+                    "eda.nokia.com/security-profile": "managed",
+                    "mh-esi": "true",
+                    "role": "leaf"
+                },
+                "name": "t1-leaf1",
+                "namespace": "test1",
+                "resourceVersion": "874728",
+                "uid": "e8160f70-ec9e-445e-aee0-bf0b5bcb4b04"
+            },
+            "spec": {
+                "nodeProfile": "srlinux-ghcr-26.3.2",
+                "npp": {
+                    "mode": "normal"
+                },
+                "onBoarded": true,
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "productionAddress": {},
+                "version": "26.3.2"
+            },
+            "status": {
+                "node-details": "10.244.0.88:57400",
+                "node-state": "Synced",
+                "npp-details": "10.244.0.80:50057",
+                "npp-pod": "eda-npp-0",
+                "npp-state": "Connected",
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "simulate": true,
+                "version": "26.3.2"
+            }
+        },
+        {
+            "apiVersion": "core.eda.nokia.com/v1",
+            "kind": "TopoNode",
+            "metadata": {
+                "creationTimestamp": "2026-07-06T10:35:03Z",
+                "generation": 2,
+                "labels": {
+                    "eda.nokia.com/role": "leaf",
+                    "eda.nokia.com/security-profile": "managed",
+                    "mh-esi": "true",
+                    "role": "leaf"
+                },
+                "name": "t1-leaf2",
+                "namespace": "test1",
+                "resourceVersion": "874730",
+                "uid": "fcf25030-5875-4970-9add-8fe5e8f52b1a"
+            },
+            "spec": {
+                "nodeProfile": "srlinux-ghcr-26.3.2",
+                "npp": {
+                    "mode": "normal"
+                },
+                "onBoarded": true,
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "productionAddress": {},
+                "version": "26.3.2"
+            },
+            "status": {
+                "node-details": "10.244.0.85:57400",
+                "node-state": "Synced",
+                "npp-details": "10.244.0.80:50057",
+                "npp-pod": "eda-npp-0",
+                "npp-state": "Connected",
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "simulate": true,
+                "version": "26.3.2"
+            }
+        },
+        {
+            "apiVersion": "core.eda.nokia.com/v1",
+            "kind": "TopoNode",
+            "metadata": {
+                "creationTimestamp": "2026-07-06T10:35:03Z",
+                "generation": 2,
+                "labels": {
+                    "eda.nokia.com/role": "leaf",
+                    "eda.nokia.com/security-profile": "managed",
+                    "role": "leaf"
+                },
+                "name": "t1-leaf3",
+                "namespace": "test1",
+                "resourceVersion": "870637",
+                "uid": "2c40eca9-016e-4213-a551-d054b34cebf5"
+            },
+            "spec": {
+                "nodeProfile": "srlinux-ghcr-26.3.2",
+                "npp": {
+                    "mode": "normal"
+                },
+                "onBoarded": true,
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "productionAddress": {},
+                "version": "26.3.2"
+            },
+            "status": {
+                "node-details": "10.244.0.87:57400",
+                "node-state": "Synced",
+                "npp-details": "10.244.0.80:50057",
+                "npp-pod": "eda-npp-0",
+                "npp-state": "Connected",
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "simulate": true,
+                "version": "26.3.2"
+            }
+        },
+        {
+            "apiVersion": "core.eda.nokia.com/v1",
+            "kind": "TopoNode",
+            "metadata": {
+                "creationTimestamp": "2026-07-06T10:35:03Z",
+                "generation": 2,
+                "labels": {
+                    "eda.nokia.com/role": "leaf",
+                    "eda.nokia.com/security-profile": "managed",
+                    "role": "leaf"
+                },
+                "name": "t1-leaf4",
+                "namespace": "test1",
+                "resourceVersion": "870640",
+                "uid": "78c04cd9-5c14-4969-a255-d12717b0057e"
+            },
+            "spec": {
+                "nodeProfile": "srlinux-ghcr-26.3.2",
+                "npp": {
+                    "mode": "normal"
+                },
+                "onBoarded": true,
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "productionAddress": {},
+                "version": "26.3.2"
+            },
+            "status": {
+                "node-details": "10.244.0.84:57400",
+                "node-state": "Synced",
+                "npp-details": "10.244.0.80:50057",
+                "npp-pod": "eda-npp-0",
+                "npp-state": "Connected",
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "simulate": true,
+                "version": "26.3.2"
+            }
+        },
+        {
+            "apiVersion": "core.eda.nokia.com/v1",
+            "kind": "TopoNode",
+            "metadata": {
+                "creationTimestamp": "2026-07-06T10:35:03Z",
+                "generation": 2,
+                "labels": {
+                    "eda.nokia.com/role": "spine",
+                    "eda.nokia.com/security-profile": "managed",
+                    "role": "spine"
+                },
+                "name": "t1-spine1",
+                "namespace": "test1",
+                "resourceVersion": "870315",
+                "uid": "17de0045-2fbb-48db-91a9-3caf842da0ce"
+            },
+            "spec": {
+                "nodeProfile": "srlinux-ghcr-26.3.2",
+                "npp": {
+                    "mode": "normal"
+                },
+                "onBoarded": true,
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "productionAddress": {},
+                "version": "26.3.2"
+            },
+            "status": {
+                "node-details": "10.244.0.83:57400",
+                "node-state": "Synced",
+                "npp-details": "10.244.0.80:50057",
+                "npp-pod": "eda-npp-0",
+                "npp-state": "Connected",
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "simulate": true,
+                "version": "26.3.2"
+            }
+        },
+        {
+            "apiVersion": "core.eda.nokia.com/v1",
+            "kind": "TopoNode",
+            "metadata": {
+                "creationTimestamp": "2026-07-06T10:35:03Z",
+                "generation": 2,
+                "labels": {
+                    "eda.nokia.com/role": "spine",
+                    "eda.nokia.com/security-profile": "managed",
+                    "role": "spine"
+                },
+                "name": "t1-spine2",
+                "namespace": "test1",
+                "resourceVersion": "870317",
+                "uid": "e46c92e5-433b-40d6-91b4-07877580b833"
+            },
+            "spec": {
+                "nodeProfile": "srlinux-ghcr-26.3.2",
+                "npp": {
+                    "mode": "normal"
+                },
+                "onBoarded": true,
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "productionAddress": {},
+                "version": "26.3.2"
+            },
+            "status": {
+                "node-details": "10.244.0.86:57400",
+                "node-state": "Synced",
+                "npp-details": "10.244.0.80:50057",
+                "npp-pod": "eda-npp-0",
+                "npp-state": "Connected",
+                "operatingSystem": "srl",
+                "platform": "7250 IXR-X1B",
+                "simulate": true,
+                "version": "26.3.2"
+            }
+        }
+    ],
+    "kind": "List",
+    "metadata": {
+        "resourceVersion": ""
+    }
+}

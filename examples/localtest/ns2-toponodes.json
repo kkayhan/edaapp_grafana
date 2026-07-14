@@ -1,0 +1,306 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-spine1",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "spine",
+          "role": "spine",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7250 IXR-X1B",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-spine2",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "spine",
+          "role": "spine",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7250 IXR-X1B",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-spine3",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "spine",
+          "role": "spine",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7250 IXR-X1B",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-spine4",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "spine",
+          "role": "spine",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7250 IXR-X1B",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-leaf1",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "leaf",
+          "role": "leaf",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7220 IXR-D2L",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-leaf2",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "leaf",
+          "role": "leaf",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7220 IXR-D2L",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-leaf3",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "leaf",
+          "role": "leaf",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7220 IXR-D2L",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-leaf4",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "leaf",
+          "role": "leaf",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7220 IXR-D2L",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-leaf5",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "leaf",
+          "role": "leaf",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7220 IXR-D2L",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-leaf6",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "leaf",
+          "role": "leaf",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7220 IXR-D2L",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-leaf7",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "leaf",
+          "role": "leaf",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7220 IXR-D2L",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoNode",
+      "metadata": {
+        "name": "ns2-leaf8",
+        "namespace": "ns2",
+        "labels": {
+          "eda.nokia.com/role": "leaf",
+          "role": "leaf",
+          "eda.nokia.com/security-profile": "managed"
+        }
+      },
+      "spec": {
+        "operatingSystem": "srl",
+        "platform": "7220 IXR-D2L",
+        "onBoarded": true,
+        "version": "26.3.2",
+        "nodeProfile": "srlinux-ghcr-26.3.2"
+      },
+      "status": {
+        "node-state": "Synced",
+        "npp-state": "Connected",
+        "simulate": true
+      }
+    }
+  ]
+}

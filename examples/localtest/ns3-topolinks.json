@@ -1,0 +1,688 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf1-ns3-spine1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-1",
+              "node": "ns3-leaf1",
+              "interfaceResource": "ns3-leaf1-ethernet-1-1"
+            },
+            "remote": {
+              "interface": "ethernet-1-1",
+              "node": "ns3-spine1",
+              "interfaceResource": "ns3-spine1-ethernet-1-1"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf1-ns3-spine2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-2",
+              "node": "ns3-leaf1",
+              "interfaceResource": "ns3-leaf1-ethernet-1-2"
+            },
+            "remote": {
+              "interface": "ethernet-1-1",
+              "node": "ns3-spine2",
+              "interfaceResource": "ns3-spine2-ethernet-1-1"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf2-ns3-spine1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-1",
+              "node": "ns3-leaf2",
+              "interfaceResource": "ns3-leaf2-ethernet-1-1"
+            },
+            "remote": {
+              "interface": "ethernet-1-2",
+              "node": "ns3-spine1",
+              "interfaceResource": "ns3-spine1-ethernet-1-2"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf2-ns3-spine2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-2",
+              "node": "ns3-leaf2",
+              "interfaceResource": "ns3-leaf2-ethernet-1-2"
+            },
+            "remote": {
+              "interface": "ethernet-1-2",
+              "node": "ns3-spine2",
+              "interfaceResource": "ns3-spine2-ethernet-1-2"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf3-ns3-spine1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-1",
+              "node": "ns3-leaf3",
+              "interfaceResource": "ns3-leaf3-ethernet-1-1"
+            },
+            "remote": {
+              "interface": "ethernet-1-3",
+              "node": "ns3-spine1",
+              "interfaceResource": "ns3-spine1-ethernet-1-3"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf3-ns3-spine2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-2",
+              "node": "ns3-leaf3",
+              "interfaceResource": "ns3-leaf3-ethernet-1-2"
+            },
+            "remote": {
+              "interface": "ethernet-1-3",
+              "node": "ns3-spine2",
+              "interfaceResource": "ns3-spine2-ethernet-1-3"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf4-ns3-spine1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-1",
+              "node": "ns3-leaf4",
+              "interfaceResource": "ns3-leaf4-ethernet-1-1"
+            },
+            "remote": {
+              "interface": "ethernet-1-4",
+              "node": "ns3-spine1",
+              "interfaceResource": "ns3-spine1-ethernet-1-4"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf4-ns3-spine2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-2",
+              "node": "ns3-leaf4",
+              "interfaceResource": "ns3-leaf4-ethernet-1-2"
+            },
+            "remote": {
+              "interface": "ethernet-1-4",
+              "node": "ns3-spine2",
+              "interfaceResource": "ns3-spine2-ethernet-1-4"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf5-ns3-spine1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-1",
+              "node": "ns3-leaf5",
+              "interfaceResource": "ns3-leaf5-ethernet-1-1"
+            },
+            "remote": {
+              "interface": "ethernet-1-5",
+              "node": "ns3-spine1",
+              "interfaceResource": "ns3-spine1-ethernet-1-5"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf5-ns3-spine2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-2",
+              "node": "ns3-leaf5",
+              "interfaceResource": "ns3-leaf5-ethernet-1-2"
+            },
+            "remote": {
+              "interface": "ethernet-1-5",
+              "node": "ns3-spine2",
+              "interfaceResource": "ns3-spine2-ethernet-1-5"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-bl1-ns3-spine1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-1",
+              "node": "ns3-bl1",
+              "interfaceResource": "ns3-bl1-ethernet-1-1"
+            },
+            "remote": {
+              "interface": "ethernet-1-6",
+              "node": "ns3-spine1",
+              "interfaceResource": "ns3-spine1-ethernet-1-6"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-bl1-ns3-spine2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "interSwitch"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-2",
+              "node": "ns3-bl1",
+              "interfaceResource": "ns3-bl1-ethernet-1-2"
+            },
+            "remote": {
+              "interface": "ethernet-1-6",
+              "node": "ns3-spine2",
+              "interfaceResource": "ns3-spine2-ethernet-1-6"
+            },
+            "type": "interSwitch"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf1-host1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-3",
+              "node": "ns3-leaf1",
+              "interfaceResource": "ns3-leaf1-ethernet-1-3"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf1-host2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-4",
+              "node": "ns3-leaf1",
+              "interfaceResource": "ns3-leaf1-ethernet-1-4"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf2-host1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-3",
+              "node": "ns3-leaf2",
+              "interfaceResource": "ns3-leaf2-ethernet-1-3"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf2-host2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-4",
+              "node": "ns3-leaf2",
+              "interfaceResource": "ns3-leaf2-ethernet-1-4"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf3-host1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-3",
+              "node": "ns3-leaf3",
+              "interfaceResource": "ns3-leaf3-ethernet-1-3"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf3-host2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-4",
+              "node": "ns3-leaf3",
+              "interfaceResource": "ns3-leaf3-ethernet-1-4"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf4-host1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-3",
+              "node": "ns3-leaf4",
+              "interfaceResource": "ns3-leaf4-ethernet-1-3"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf4-host2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-4",
+              "node": "ns3-leaf4",
+              "interfaceResource": "ns3-leaf4-ethernet-1-4"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf5-host1",
+        "namespace": "ns3",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-3",
+              "node": "ns3-leaf5",
+              "interfaceResource": "ns3-leaf5-ethernet-1-3"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns3-leaf5-host2",
+        "namespace": "ns3",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-4",
+              "node": "ns3-leaf5",
+              "interfaceResource": "ns3-leaf5-ethernet-1-4"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    }
+  ]
+}

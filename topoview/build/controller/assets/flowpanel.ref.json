@@ -1,0 +1,101 @@
+{
+  "datasource": {
+    "default": false,
+    "type": "prometheus",
+    "uid": "PBFA97CFB590B2093"
+  },
+  "description": "",
+  "fieldConfig": {
+    "defaults": {},
+    "overrides": []
+  },
+  "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 22
+  },
+  "id": 2,
+  "interval": "1s",
+  "options": {
+    "animationControlEnabled": true,
+    "animationsEnabled": true,
+    "debuggingCtr": {
+      "colorsCtr": 0,
+      "dataCtr": 0,
+      "displaySvgCtr": 0,
+      "mappingsCtr": 0,
+      "timingsCtr": 0
+    },
+    "highlighterEnabled": true,
+    "highlighterSelection": "",
+    "panZoomEnabled": true,
+    "panelConfig": "",
+    "siteConfig": "",
+    "svg": "",
+    "testDataEnabled": false,
+    "timeSliderEnabled": false,
+    "timeSliderMode": "local"
+  },
+  "pluginVersion": "1.18.5",
+  "targets": [
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "disableTextWrap": false,
+      "editorMode": "code",
+      "exemplar": false,
+      "expr": "node_srl_interface_oper_state{namespace_name='$namespace'}",
+      "fullMetaSearch": false,
+      "includeNullMetadata": true,
+      "instant": true,
+      "interval": "1s",
+      "legendFormat": "oper-state:{{node_name}}:{{interface_name}}",
+      "range": false,
+      "refId": "A",
+      "useBackend": false
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "disableTextWrap": false,
+      "editorMode": "code",
+      "exemplar": false,
+      "expr": "last_over_time(node_srl_interface_traffic_rate_out_bps{namespace_name='$namespace'}[20s])",
+      "fullMetaSearch": false,
+      "hide": false,
+      "includeNullMetadata": true,
+      "instant": true,
+      "interval": "1s",
+      "legendFormat": "{{node_name}}:{{interface_name}}:out",
+      "range": false,
+      "refId": "B",
+      "useBackend": false
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PBFA97CFB590B2093"
+      },
+      "disableTextWrap": false,
+      "editorMode": "code",
+      "exemplar": false,
+      "expr": "last_over_time(node_srl_interface_traffic_rate_in_bps{namespace_name='$namespace'}[20s])",
+      "fullMetaSearch": false,
+      "hide": false,
+      "includeNullMetadata": true,
+      "instant": true,
+      "interval": "1s",
+      "legendFormat": "{{node_name}}:{{interface_name}}:in",
+      "range": false,
+      "refId": "C",
+      "useBackend": false
+    }
+  ],
+  "title": "Fabric topology \u2014 live per-link throughput",
+  "type": "andrewbmchugh-flow-panel"
+}

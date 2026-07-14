@@ -1,0 +1,31 @@
+{
+  "apiVersion": "v1",
+  "kind": "List",
+  "items": [
+    {
+      "apiVersion": "fabrics.eda.nokia.com/v1",
+      "kind": "Fabric",
+      "metadata": {
+        "name": "ns1-fabric",
+        "namespace": "ns1"
+      },
+      "spec": {
+        "leafs": {
+          "leafNodeSelectors": [
+            "eda.nokia.com/role=leaf"
+          ]
+        },
+        "spines": {
+          "spineNodeSelectors": [
+            "eda.nokia.com/role=spine"
+          ]
+        },
+        "borderLeafs": {
+          "borderLeafNodeSelectors": [
+            "eda.nokia.com/role=borderleaf"
+          ]
+        }
+      }
+    }
+  ]
+}
