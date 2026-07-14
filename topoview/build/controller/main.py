@@ -12,9 +12,11 @@ Long-running controller that, every RECONCILE_INTERVAL:
 
 Re-push happens only when a namespace's STRUCTURE changes (topology hash) or its
 dashboard is missing from Grafana (self-heal). Live link colour/throughput is
-rendered by the panel's own PromQL, so an interface flap needs no re-push.
+served by the controller's own /eql/<ns>.json endpoint (Grafana Infinity polls
+it), so an interface flap needs no re-push.
 
-All reads are via the pod ServiceAccount token (k8s.py). No Keycloak / EDA REST.
+Topology reads use the pod ServiceAccount token (k8s.py). Live telemetry is read
+straight from EQL via eda-api (auth.py password grant); NO Prometheus.
 """
 import hashlib
 import json
@@ -27,20 +29,24 @@ from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import dashboard as dash_mod
+import eql as eql_mod
 import grafana
 import k8s
 import layout as layout_mod
 import svggen
 import topology as topo_mod
 
-VERSION = "v0.2.3"
+VERSION = "v26.4.3-1"
 
 RECONCILE_INTERVAL = int(os.environ.get("RECONCILE_INTERVAL", "30"))
-GRAFANA_URL = os.environ.get("GRAFANA_URL", "http://grafana.eda-topoview.svc.cluster.local:3000")
+GRAFANA_URL = os.environ.get("GRAFANA_URL", "http://grafana.eda-system.svc.cluster.local:3000")
 GRAFANA_USER = os.environ.get("GRAFANA_ADMIN_USER", "admin")
 GRAFANA_PASSWORD = os.environ.get("GRAFANA_ADMIN_PASSWORD", "")
 HEALTH_PORT = int(os.environ.get("HEALTH_PORT", "8080"))
 POD_NAMESPACE = os.environ.get("POD_NAMESPACE", "eda-system")
+# Live EQL responses are cached per-namespace for this many seconds: one eda-api
+# poll per interval serves every Grafana viewer (mirrors Prometheus buffering).
+DATA_TTL = float(os.environ.get("DATA_TTL", "4"))
 
 # Grafana is fronted by the EDA HttpProxy named 'grafana'. Grafana's root URL must
 # match the cluster's external address, which we auto-detect from EngineConfig
@@ -57,30 +63,11 @@ CRD_NAME = "default"
 # never draw dashboards for infrastructure namespaces
 SYSTEM_NS = {"eda-system", "eda-topoview", "kube-system"}
 
-# The two Prometheus Export CRs the flow panel needs (interface oper-state +
-# traffic-rate), ns-agnostic in eda-system. An EDA app bundle may not ship
-# prom.eda.nokia.com CRs (foreign group), so the controller creates them itself.
-EXPORT_GROUP, EXPORT_VERSION, EXPORT_PLURAL, EXPORT_NS = \
-    "prom.eda.nokia.com", "v1alpha1", "exports", "eda-system"
-EXPORTS = [
-    {"name": "td-interface",
-     "spec": {"exports": [{"path": ".namespace.node.srl.interface",
-                           "mappings": [{"source": "enable", "destination": "1"},
-                                        {"source": "disable", "destination": "0"},
-                                        {"source": "up", "destination": "1"},
-                                        {"source": "down", "destination": "0"}],
-                           "metricName": {"regex": "namespace_(.+)", "replacement": "$1"}}]}},
-    {"name": "td-interface-traffic-rate",
-     "spec": {"exports": [{"path": ".namespace.node.srl.interface.traffic-rate",
-                           "metricName": {"regex": "namespace_(.+)", "replacement": "$1"}}]}},
-]
-
 DEFAULTS = {
     "namespaceExclude": [],
     "refresh": "5s",
     "roleTiers": None,          # None -> topology.DEFAULT_ROLE_TIERS
     "thresholds": None,         # None -> svggen.DEFAULT_THRESHOLDS
-    "prometheusDatasourceUid": dash_mod.DEFAULT_PROM_UID,
 }
 
 logger = logging.getLogger("main")
@@ -89,6 +76,28 @@ shutdown_event = threading.Event()
 _health = {"state": "starting", "time": None, "message": ""}
 _last_status_hash = [None]
 _gen_cache = {}   # namespace -> generation hash last pushed
+
+# EQL response cache: namespace -> (epoch, wide_json_bytes). Guards eda-api from
+# per-viewer query storms; last-good is served if a refresh errors.
+_data_cache = {}
+_data_lock = threading.Lock()
+
+
+def _eql_json(ns):
+    """Serve the reshaped live EQL series for a namespace (bytes), TTL-cached.
+    Single-flight under a lock; on error, fall back to the last-good payload."""
+    now = time.time()
+    with _data_lock:
+        hit = _data_cache.get(ns)
+        if hit and now - hit[0] < DATA_TTL:
+            return hit[1]
+        try:
+            body = json.dumps(eql_mod.fetch_wide(ns)).encode()
+            _data_cache[ns] = (now, body)
+            return body
+        except Exception as e:
+            logger.warning("EQL fetch for ns %s failed: %s", ns, e)
+            return hit[1] if hit else b"[{}]"
 
 
 def _setup_logging():
@@ -110,17 +119,27 @@ def _signal_handler(signum, frame):
 
 # ---------------------------------------------------------------- healthz -----
 class _HealthHandler(BaseHTTPRequestHandler):
-    def do_GET(self):
-        if self.path.split("?")[0] != "/healthz":
-            self.send_response(404)
-            self.end_headers()
-            return
-        body = json.dumps(_health).encode()
-        self.send_response(200)
+    def _send(self, body, code=200):
+        self.send_response(code)
         self.send_header("Content-Type", "application/json")
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+    def do_GET(self):
+        path = self.path.split("?")[0]
+        if path == "/healthz":
+            self._send(json.dumps(_health).encode())
+            return
+        # /eql/<ns>.json -> live per-interface series for Grafana's Infinity datasource
+        if path.startswith("/eql/") and path.endswith(".json"):
+            ns = path[len("/eql/"):-len(".json")]
+            if ns:
+                self._send(_eql_json(ns))
+                return
+        self.send_response(404)
+        self.end_headers()
 
     def log_message(self, *a):
         pass
@@ -158,24 +177,6 @@ def _ensure_default_cr():
         logger.info("Created default %s CR", CRD_KIND)
     except Exception as e:
         logger.warning("Failed to ensure default %s: %s", CRD_KIND, e)
-
-
-def _ensure_exports():
-    """Create the interface oper-state + traffic-rate Export CRs in eda-system if
-    absent (self-heals if deleted). These drive the metrics the flow panel reads."""
-    for e in EXPORTS:
-        try:
-            if k8s.read_namespaced_cr(EXPORT_GROUP, EXPORT_VERSION, EXPORT_NS,
-                                      EXPORT_PLURAL, e["name"]):
-                continue
-            body = {"apiVersion": f"{EXPORT_GROUP}/{EXPORT_VERSION}", "kind": "Export",
-                    "metadata": {"name": e["name"], "namespace": EXPORT_NS},
-                    "spec": e["spec"]}
-            k8s.create_namespaced_cr(EXPORT_GROUP, EXPORT_VERSION, EXPORT_NS,
-                                     EXPORT_PLURAL, body)
-            logger.info("Created Export %s", e["name"])
-        except Exception as ex:
-            logger.warning("Failed to ensure Export %s: %s", e["name"], ex)
 
 
 def _detect_root_url():
@@ -258,7 +259,7 @@ def _gen_hash(topo_sig, cfg):
     payload = json.dumps({
         "t": topo_sig, "refresh": cfg["refresh"],
         "roleTiers": cfg["roleTiers"], "thresholds": cfg["thresholds"],
-        "prom": cfg["prometheusDatasourceUid"],
+        "v": "eql",   # data path marker: forces one re-push on the Prometheus->EQL cutover
     }, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(payload.encode()).hexdigest()
 
@@ -302,7 +303,7 @@ def reconcile(cfg):
                                           fabric_names=model["fabrics"])
                 d = dash_mod.build_topology_dashboard(
                     svg, pc, ns, fabric_names=model["fabrics"], uid=uid,
-                    refresh=cfg["refresh"], prom_uid=cfg["prometheusDatasourceUid"])
+                    refresh=cfg["refresh"])
                 grafana.push_dashboard(GRAFANA_URL, d, GRAFANA_USER, GRAFANA_PASSWORD)
                 _gen_cache[ns] = gh
                 logger.info("Pushed dashboard %s (%d nodes, %d links)", uid,
@@ -341,7 +342,6 @@ def main():
     _start_health_server()
     _health.update(state="ok", message="started")
     _ensure_default_cr()
-    _ensure_exports()
 
     while not shutdown_event.is_set():
         cycle_start = time.time()

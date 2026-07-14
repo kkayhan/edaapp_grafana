@@ -7,8 +7,11 @@ Assemble Grafana dashboards.
   build_menu_dashboard: the read-only landing/home dashboard -- a 'dashlist' panel
     that auto-lists every topoview-tagged dashboard, so the user picks a namespace.
 
-Datasource uid defaults to Grafana's deterministic provisioning uid for a
-datasource named 'Prometheus' (PBFA97CFB590B2093); overridable via cfg.
+EQL-direct data path: the flow panel's single target is an Infinity (JSON/URL)
+query against the TopoView controller's own /eql/<ns>.json endpoint, which serves
+the live per-interface series (out/in bps + oper-state) straight from EQL. No
+Prometheus, no transforms -- Infinity turns each JSON key into one series named
+exactly the panelConfig dataRef. Datasource uid is the provisioned Infinity uid.
 """
 import copy
 import json
@@ -18,20 +21,26 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 FLOW_REF = json.load(open(os.path.join(HERE, "assets", "flowpanel.ref.json")))
 
 TAG = "topoview"
-DEFAULT_PROM_UID = "PBFA97CFB590B2093"
+# uid of the provisioned Infinity datasource (20-grafana-config.yaml).
+DS_UID = "eda-eql-infinity"
+# The controller serves reshaped EQL here; Grafana resolves ${namespace} per dashboard.
+DATA_URL = os.environ.get(
+    "TOPOVIEW_DATA_URL",
+    "http://eda-topoview.eda-system.svc.cluster.local:8080/eql/${namespace}.json")
 
 
-def _set_ds_uid(panel, uid):
-    if isinstance(panel.get("datasource"), dict):
-        panel["datasource"]["uid"] = uid
-    for t in panel.get("targets", []):
-        if isinstance(t.get("datasource"), dict):
-            t["datasource"]["uid"] = uid
+def _infinity_target():
+    return {
+        "refId": "A",
+        "datasource": {"type": "yesoreyeram-infinity-datasource", "uid": DS_UID},
+        "type": "json", "source": "url", "format": "table", "parser": "backend",
+        "root_selector": "", "columns": [],
+        "url": DATA_URL, "url_options": {"method": "GET"},
+    }
 
 
 def build_topology_dashboard(svg, panelconfig, namespace, fabric_names=None,
                              uid=None, refresh="5s", prom_uid=None):
-    prom_uid = prom_uid or DEFAULT_PROM_UID
     uid = uid or f"topo-{namespace}"
     fab = ", ".join(fabric_names or [])
     title = f"Namespace: {namespace}" + (f"   Fabric: {fab}" if fab else "")
@@ -40,11 +49,12 @@ def build_topology_dashboard(svg, panelconfig, namespace, fabric_names=None,
     flow["id"] = 2
     flow["gridPos"] = {"x": 0, "y": 0, "w": 24, "h": 22}
     flow["title"] = ""                 # title lives inside the SVG; keep the panel chrome clean
+    flow["datasource"] = {"type": "yesoreyeram-infinity-datasource", "uid": DS_UID}
+    flow["targets"] = [_infinity_target()]
     o = flow["options"]
     o["svg"] = svg
     o["panelConfig"] = panelconfig
     o["panZoomEnabled"] = True
-    _set_ds_uid(flow, prom_uid)
 
     ns_var = {
         "name": "namespace", "type": "constant", "query": namespace,

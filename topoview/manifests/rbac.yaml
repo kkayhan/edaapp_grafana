@@ -31,12 +31,13 @@ rules:
   - apiGroups: ["topoview.eda.edacommunity.com"]
     resources: ["topoviewconfigs/status"]
     verbs: ["get", "update", "patch"]
-  # Ensure the two Prometheus Export CRs (interface oper-state + traffic-rate)
-  # the flow panel needs. An EDA app can't ship prom.eda.nokia.com CRs in its
-  # bundle (foreign group), so the controller creates them at runtime instead.
-  - apiGroups: ["prom.eda.nokia.com"]
-    resources: ["exports"]
-    verbs: ["get", "list", "watch", "create", "update", "patch"]
+  # EQL-direct telemetry: read the pre-existing EDA-core secrets needed to obtain
+  # an eda-api bearer token (password grant) for /core/query/v1/eql. Read-only,
+  # scoped to just these three secrets; the app ships none of them.
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+    resourceNames: ["keycloak-admin-secret", "eda-api-ca", "eda-realm-auth-secret"]
   # Auto-detect the cluster's external host (never hardcoded) to point Grafana's
   # root URL at it: read EngineConfig, patch the bundled Grafana Deployment.
   - apiGroups: ["core.eda.nokia.com"]

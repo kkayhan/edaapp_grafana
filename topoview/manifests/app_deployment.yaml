@@ -28,7 +28,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: topoview-controller
-          image: ghcr.io/kkayhan/edaapp_grafana/topoview-controller:v0.2.3
+          image: ghcr.io/kkayhan/edaapp_grafana/topoview-controller:v26.4.3-1
           imagePullPolicy: IfNotPresent
           env:
             - name: POD_NAMESPACE
@@ -77,3 +77,20 @@ spec:
             limits:
               cpu: "200m"
               memory: "192Mi"
+---
+# Exposes the controller's /eql/<ns>.json endpoint so the bundled Grafana's
+# Infinity datasource can pull live per-interface telemetry (in-cluster only).
+apiVersion: v1
+kind: Service
+metadata:
+  name: eda-topoview
+  namespace: eda-system
+  labels:
+    eda.nokia.com/app: eda-topoview
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: health
+  selector:
+    eda.nokia.com/app: eda-topoview

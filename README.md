@@ -4,7 +4,8 @@
 data-center fabric into a live Grafana **topology map** — automatically. Install it once, and it
 discovers every namespace that contains a fabric, draws the switch topology, wires up live
 per-interface telemetry, and keeps the dashboards in sync as the topology changes. No dashboards to
-hand-build, no SVG to hand-edit.
+hand-build, no SVG to hand-edit, and — since **v26.4.3-1** — **no Prometheus and no external
+dependencies**: telemetry is read straight from EDA over EQL.
 
 ![Live topology dashboard](docs/images/topology.png)
 
@@ -17,9 +18,10 @@ hand-build, no SVG to hand-edit.
 - **Draws the fabric by role.** Border-leaf switches on the **top** row, spines in the **middle**,
   leaf switches on the **bottom** — roles come from the `eda.nokia.com/role` node label (or the
   Fabric CR's selectors). Rows that are empty collapse; the canvas auto-scales to any fabric size.
-- **Live link telemetry.** Every inter-switch link is a dual-direction arrow coloured by throughput,
-  with a live bits/sec pill per direction, plus a port dot coloured by oper-state (green up / red
-  down). Values refresh every ~5 s straight from Prometheus.
+- **Live link telemetry, straight from EQL.** Every inter-switch link is a dual-direction arrow
+  coloured by throughput, with a live bits/sec pill per direction, plus a port dot coloured by
+  oper-state (green up / red down). Values refresh every ~5 s directly from EDA's database — no
+  time-series backend in the middle.
 - **Edge interfaces, not host clutter.** Host-facing ports aren't drawn as nodes — instead each leaf
   lists its edge interfaces (`ethernet-1/3`, `ethernet-1/4`, …) with live in/out bps, the interface
   name coloured by rate.
@@ -36,31 +38,39 @@ hand-build, no SVG to hand-edit.
 
 ## How it works
 
-TopoView bundles its own telemetry stack (Prometheus + Grafana — **no Loki**, since EDA has native
-logging) plus a small Python controller. Everything installs into an `eda-topoview` namespace.
+TopoView bundles just **Grafana** (no Prometheus, no Loki — EDA has native logging) plus a small
+Python controller. Everything installs into the `eda-system` namespace.
 
 ```
-                         eda-topoview namespace
+                              eda-system namespace
   ┌──────────────────────────────────────────────────────────────────┐
-  │  TopoView controller (Deployment)                                 │
+  │  TopoView controller (Deployment + Service :8080)                 │
   │    every 30s: read TopoNode/TopoLink/Fabric  →  build model       │
   │               →  auto-layout  →  render SVG + flow-panel config    │
   │               →  push dashboard to Grafana (admin API)            │
   │                                                                    │
-  │  Prometheus  ── scrapes ──►  EDA prometheus-exporter endpoint      │
-  │       ▲                       (node_srl_interface_* metrics)       │
-  │       │ query                                                      │
+  │    on demand: GET /eql/<ns>.json  →  run 2 EQL queries on eda-api  │
+  │               →  reshape to the panel's series  (TTL-cached)       │
+  │       ▲                                                            │
+  │       │ Infinity datasource (JSON/URL)                            │
   │  Grafana (anonymous read-only, andrewbmchugh-flow-panel plugin)    │
-  └──────────────────────────────────────────────────────────────────┘
-                    ▲
-        EDA HttpProxy  →  https://<your-eda-host>/core/httpproxy/v1/grafana/
+  └───────────────────────────────┬──────────────────────────────────┘
+              │ EQL (bearer token)  │  EDA HttpProxy
+              ▼                     ▼
+        eda-api  ───────►  https://<your-eda-host>/core/httpproxy/v1/grafana/
+     /core/query/v1/eql
 ```
 
-- The controller reads the cluster via its **ServiceAccount token** only (no Keycloak / EDA REST).
-- Metrics come from two ns-agnostic **`Export` CRs** (`node_srl_interface_oper_state` and
-  `node_srl_interface_traffic_rate_{in,out}_bps`) that cover every namespace at once.
-- The topology map is an [`andrewbmchugh-flow-panel`](https://github.com/andrewbmchugh/flow) panel;
-  the controller generates its SVG and `panelConfig` from the live topology.
+- The controller reads the **topology** with its Kubernetes ServiceAccount token, and reads **live
+  telemetry** from EDA over EQL (`/core/query/v1/eql`) using an EDA API bearer token.
+- **Authentication is automatic.** The controller obtains its token via the standard EDA password
+  grant, reading the pre-existing `keycloak-admin-secret`, `eda-api-ca`, and `eda-realm-auth-secret`
+  in `eda-system` — the app ships no credentials of its own.
+- Grafana's [`yesoreyeram-infinity-datasource`](https://grafana.com/grafana/plugins/yesoreyeram-infinity-datasource/)
+  polls the controller's `/eql/<ns>.json` endpoint; the controller runs two EQL queries per namespace
+  (`interface.traffic-rate` and `interface` oper-state) and reshapes them into exactly the series the
+  [`andrewbmchugh-flow-panel`](https://github.com/andrewbmchugh/flow) panel needs. A short TTL cache
+  means eda-api is queried once per refresh interval no matter how many people are watching.
 
 ---
 
@@ -75,18 +85,17 @@ topoview/
   build/
     Dockerfile                  controller image
     controller/                 the controller (Python, stdlib only)
-      main.py                   reconcile loop + namespace discovery
+      main.py                   reconcile loop, namespace discovery, /eql endpoint + cache
+      auth.py                   EDA API token (password grant) + TLS to eda-api
+      eql.py                    EQL queries + reshape to flow-panel series
       topology.py               CRs  → vendor-neutral topology model
       layout.py                 model → auto-layout (role rows, crossing-min, port fan-out)
       svggen.py                 layout → SVG + flow-panel panelConfig
-      dashboard.py              flow-panel dashboard + menu dashboard JSON
+      dashboard.py              flow-panel dashboard (Infinity target) + menu dashboard JSON
       grafana.py  k8s.py        Grafana API + Kubernetes API clients
   docs/                         Store app page (index.md, README, CHANGELOG, …)
   manifests/                    bundled stack, deployed into eda-system
-    01-grafana-secret 10/11-prometheus 20/21-grafana
-    40-grafana-httpproxy app_deployment rbac
-    30-exports.yaml             (NOT a bundle component — the controller creates
-                                 these Export CRs at runtime; kept here for reference)
+    01-grafana-secret 20/21-grafana 40-grafana-httpproxy app_deployment rbac
 examples/localtest/             offline generator harness + synthetic fabric fixtures
 ```
 
@@ -94,8 +103,8 @@ examples/localtest/             offline generator harness + synthetic fabric fix
 
 ## Install
 
-Prerequisite: a Nokia EDA cluster (tested on **26.4.3**) with the `prom.eda.nokia.com` exporter app
-(installed automatically as a dependency). Everything installs into the `eda-system` namespace.
+Prerequisite: a Nokia EDA cluster (tested on **26.4.3**). No exporter app, no Prometheus — TopoView is
+self-contained. Everything installs into the `eda-system` namespace.
 
 ### From the EDA Store (recommended)
 
@@ -120,7 +129,7 @@ kubectl apply -f catalog.yaml
 ```
 
 TopoView then appears in the EDA UI **Store** (or install headlessly with an `AppInstaller` CR for
-`appId: topoview.eda.edacommunity.com`, `catalog: kkayhan-catalog`).
+`appId: topoview.eda.edacommunity.com`, `catalog: kkayhan-catalog`, `version: v26.4.3-1`).
 
 ### Manual deploy (dev)
 
@@ -134,8 +143,8 @@ The controller does the rest automatically:
 - **EDA host is auto-detected.** The `GF_SERVER_ROOT_URL` host is a placeholder
   (`PENDING-AUTODETECT`); the controller reads the cluster's external address from `EngineConfig`
   and patches Grafana on the first reconcile — nothing to hardcode, works on any cluster.
-- **The two `Export` CRs (`30-exports.yaml`) are created by the controller** at runtime, so you
-  don't apply those.
+- **Live telemetry needs no setup** — the controller authenticates to eda-api itself using the
+  cluster's own EDA secrets and serves the flow panel over its `/eql/<ns>.json` endpoint.
 
 For a manual deploy you may optionally set a real `admin-password` in
 `topoview/manifests/01-grafana-secret.yaml` (placeholder shipped; it only protects the controller's
@@ -159,7 +168,6 @@ and status. All spec fields are optional:
 | `refresh` | `5s` | dashboard refresh interval |
 | `roleTiers` | `{borderleaf:0, superspine:0, spine:1, leaf:2}` | role → row |
 | `thresholds` | built-in | traffic + oper-state colour thresholds |
-| `prometheusDatasourceUid` | `PBFA97CFB590B2093` | Grafana datasource uid |
 
 `status` reports discovered namespaces, per-fabric dashboard uids + structure hashes, and health.
 
@@ -167,7 +175,11 @@ and status. All spec fields are optional:
 
 ## Notes
 
-- **Metrics are SR Linux (`node_srl_*`).** All-SRL fabrics today; SR OS / multi-vendor is future work.
+- **Live values only.** TopoView reads current throughput + oper-state straight from EDA — there is
+  no time-series history (that's the deliberate trade for dropping Prometheus). It's a live map, not
+  a trends dashboard.
+- **Metrics are SR Linux (`.namespace.node.srl.interface.*`).** All-SRL fabrics today; SR OS /
+  multi-vendor is future work.
 - **Bundled Grafana is ephemeral** (no PVC). API-pushed dashboards are re-pushed on restart by the
   controller (self-heal, ≤30 s); the menu is provisioned from a file.
 - Roles resolve from the `eda.nokia.com/role` label first, then the `Fabric` CR selectors.

@@ -28,7 +28,7 @@ spec:
           imagePullPolicy: IfNotPresent
           env:
             - name: GF_INSTALL_PLUGINS
-              value: "andrewbmchugh-flow-panel"
+              value: "andrewbmchugh-flow-panel,yesoreyeram-infinity-datasource"
             # read-only for humans, no login screen: land straight on the menu
             - name: GF_AUTH_ANONYMOUS_ENABLED
               value: "true"
