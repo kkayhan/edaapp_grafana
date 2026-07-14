@@ -37,6 +37,16 @@ rules:
   - apiGroups: ["prom.eda.nokia.com"]
     resources: ["exports"]
     verbs: ["get", "list", "watch", "create", "update", "patch"]
+  # Auto-detect the cluster's external host (never hardcoded) to point Grafana's
+  # root URL at it: read EngineConfig, patch the bundled Grafana Deployment.
+  - apiGroups: ["core.eda.nokia.com"]
+    resources: ["engineconfigs"]
+    verbs: ["get"]
+    resourceNames: ["engine-config"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "patch"]
+    resourceNames: ["grafana"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

@@ -49,7 +49,7 @@ def _retry_delay(attempt, err):
     return min(max(delay, 1), 8) * (attempt + 1)
 
 
-def _request(method, path, body=None):
+def _request(method, path, body=None, content_type="application/json"):
     url = _K8S_BASE + path
     data = json.dumps(body).encode("utf-8") if body is not None else None
     last_err = None
@@ -58,7 +58,7 @@ def _request(method, path, body=None):
         req.add_header("Authorization", f"Bearer {_token()}")
         req.add_header("Accept", "application/json")
         if data:
-            req.add_header("Content-Type", "application/json")
+            req.add_header("Content-Type", content_type)
         try:
             with urlopen(req, context=_ssl_ctx(), timeout=_TIMEOUT) as resp:
                 raw = resp.read()
@@ -122,6 +122,23 @@ def read_namespaced_cr(group, version, namespace, plural, name):
         if e.code == 404:
             return None
         raise
+
+
+def read_deployment(name, namespace):
+    path = f"/apis/apps/v1/namespaces/{quote(namespace, safe='')}/deployments/{quote(name, safe='')}"
+    try:
+        return _request("GET", path)
+    except urllib.error.HTTPError as e:
+        if e.code == 404:
+            return None
+        raise
+
+
+def patch_deployment(name, namespace, patch_body):
+    """Strategic-merge patch a Deployment (env lists merge by container/env name)."""
+    path = f"/apis/apps/v1/namespaces/{quote(namespace, safe='')}/deployments/{quote(name, safe='')}"
+    return _request("PATCH", path, patch_body,
+                    content_type="application/strategic-merge-patch+json")
 
 
 def list_cr_all_namespaces(group, version, plural, label_selector=None):

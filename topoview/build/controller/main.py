@@ -33,13 +33,20 @@ import layout as layout_mod
 import svggen
 import topology as topo_mod
 
-VERSION = "v0.2.2"
+VERSION = "v0.2.3"
 
 RECONCILE_INTERVAL = int(os.environ.get("RECONCILE_INTERVAL", "30"))
 GRAFANA_URL = os.environ.get("GRAFANA_URL", "http://grafana.eda-topoview.svc.cluster.local:3000")
 GRAFANA_USER = os.environ.get("GRAFANA_ADMIN_USER", "admin")
 GRAFANA_PASSWORD = os.environ.get("GRAFANA_ADMIN_PASSWORD", "")
 HEALTH_PORT = int(os.environ.get("HEALTH_PORT", "8080"))
+POD_NAMESPACE = os.environ.get("POD_NAMESPACE", "eda-system")
+
+# Grafana is fronted by the EDA HttpProxy named 'grafana'. Grafana's root URL must
+# match the cluster's external address, which we auto-detect from EngineConfig
+# (never hardcode -- every cluster differs).
+GRAFANA_DEPLOY = "grafana"
+GRAFANA_PROXY_PATH = "/core/httpproxy/v1/grafana/"
 
 CRD_GROUP = "topoview.eda.edacommunity.com"
 CRD_VERSION = "v1alpha1"
@@ -171,6 +178,50 @@ def _ensure_exports():
             logger.warning("Failed to ensure Export %s: %s", e["name"], ex)
 
 
+def _detect_root_url():
+    """Build Grafana's external root URL from the cluster's EngineConfig
+    (spec.cluster.external.domainName + httpsPort). Never hardcoded."""
+    try:
+        ec = k8s.read_namespaced_cr("core.eda.nokia.com", "v1", "eda-system",
+                                    "engineconfigs", "engine-config")
+        ext = ((((ec or {}).get("spec") or {}).get("cluster") or {}).get("external")) or {}
+        host = ext.get("domainName") or ext.get("ipv4Address")
+        if not host:
+            return None
+        port = str(ext.get("httpsPort", 443) or 443)
+        hostport = host if port in ("443", "") else f"{host}:{port}"
+        return f"https://{hostport}{GRAFANA_PROXY_PATH}"
+    except Exception as e:
+        logger.warning("Failed to read EngineConfig for host detection: %s", e)
+        return None
+
+
+def _ensure_grafana_root_url():
+    """Point Grafana's GF_SERVER_ROOT_URL at the auto-detected external host.
+    Patches (and rolls) the Grafana Deployment only when the value differs."""
+    url = _detect_root_url()
+    if not url:
+        return
+    try:
+        dep = k8s.read_deployment(GRAFANA_DEPLOY, POD_NAMESPACE)
+        if not dep:
+            return
+        containers = ((((dep.get("spec") or {}).get("template") or {}).get("spec")) or {}).get("containers") or []
+        cur = None
+        for c in containers:
+            for e in (c.get("env") or []):
+                if e.get("name") == "GF_SERVER_ROOT_URL":
+                    cur = e.get("value")
+        if cur == url:
+            return
+        patch = {"spec": {"template": {"spec": {"containers": [
+            {"name": GRAFANA_DEPLOY, "env": [{"name": "GF_SERVER_ROOT_URL", "value": url}]}]}}}}
+        k8s.patch_deployment(GRAFANA_DEPLOY, POD_NAMESPACE, patch)
+        logger.info("Set Grafana root URL to %s (was %s)", url, cur)
+    except Exception as e:
+        logger.warning("Failed to set Grafana root URL: %s", e)
+
+
 def _update_status(health, message, discovered, dashboards, menu_uid):
     try:
         cr = k8s.read_cr(CRD_GROUP, CRD_VERSION, CRD_PLURAL, CRD_NAME)
@@ -213,6 +264,7 @@ def _gen_hash(topo_sig, cfg):
 
 
 def reconcile(cfg):
+    _ensure_grafana_root_url()   # auto-detect + apply the external host each cycle
     if not GRAFANA_PASSWORD:
         return "degraded", "GRAFANA_ADMIN_PASSWORD not set", set(), [], None
     if not grafana.health(GRAFANA_URL):

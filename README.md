@@ -129,14 +129,17 @@ kubectl apply -f topoview/crds/
 kubectl apply -f topoview/manifests/          # all land in eda-system
 ```
 
-**Set two placeholders first** for a manual deploy (the Store bundle bakes working values):
+The controller does the rest automatically:
 
-1. `topoview/manifests/21-grafana.yaml` → `GF_SERVER_ROOT_URL`: replace `YOUR-EDA-HOST` with the
-   address you open the EDA UI at.
-2. `topoview/manifests/01-grafana-secret.yaml` → set a real `admin-password` (placeholder shipped;
-   it only protects the controller's write path — humans are anonymous read-only).
+- **EDA host is auto-detected.** The `GF_SERVER_ROOT_URL` host is a placeholder
+  (`PENDING-AUTODETECT`); the controller reads the cluster's external address from `EngineConfig`
+  and patches Grafana on the first reconcile — nothing to hardcode, works on any cluster.
+- **The two `Export` CRs (`30-exports.yaml`) are created by the controller** at runtime, so you
+  don't apply those.
 
-The controller creates the two `Export` CRs (`30-exports.yaml`) itself, so you don't apply those.
+For a manual deploy you may optionally set a real `admin-password` in
+`topoview/manifests/01-grafana-secret.yaml` (placeholder shipped; it only protects the controller's
+write path — humans are anonymous read-only).
 
 ### Open it
 
