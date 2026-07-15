@@ -129,6 +129,27 @@ def _uid(name):
     return "svgimg-" + re.sub(r"[^A-Za-z0-9]", "-", name)
 
 
+def _emit_edge_cell(cards_svg, cells, node, ei, cx, name_y, width):
+    """One edge-interface entry inside a card cell of the given width, centered on cx:
+    interface name (coloured by egress rate, no label) above a live in/out bps line."""
+    iff = ei["iface"]
+    key = f"{node}:{iff}"
+    val_y = name_y + 14
+    cards_svg.append(_cell_text(f"edgename:{key}", cx, name_y, iff, size=11,
+                                fill="#334155", weight="700", anchor="middle"))
+    cells.append({"id": f"edgename:{key}", "dataRef": ei["out"], "kind": "edgename"})
+    cards_svg.append(_text(cx - width / 2 + 12, val_y, "in", size=9, fill="#94a3b8",
+                           weight="600", anchor="start"))
+    cards_svg.append(_cell_text(f"edgein:{key}", cx - width / 2 + 26, val_y, "rate",
+                                size=10, anchor="start"))
+    cards_svg.append(_text(cx + 8, val_y, "out", size=9, fill="#94a3b8",
+                           weight="600", anchor="start"))
+    cards_svg.append(_cell_text(f"edgeout:{key}", cx + 28, val_y, "rate",
+                                size=10, anchor="start"))
+    cells.append({"id": f"edgein:{key}", "dataRef": ei["in"], "kind": "edgeval"})
+    cells.append({"id": f"edgeout:{key}", "dataRef": ei["out"], "kind": "edgeval"})
+
+
 def generate(model, layout, namespace, thresholds=None, fabric_names=None):
     nodes = model["nodes"]
     edges = model["edges"]
@@ -163,39 +184,46 @@ def generate(model, layout, namespace, thresholds=None, fabric_names=None):
         cells.append({"id": f"{b}:{bif}:{a}:{aif}", "dataRef": b_oper, "kind": "oper"})
 
     for idx, e in enumerate(edges):
-        x1, y1, x2, y2 = endpoints[idx]
+        ep = endpoints.get(idx)
+        if ep is None:
+            continue  # defensive: no geometry for this edge (shouldn't happen now that
+                      # build_topology keeps model[edges] and layout[endpoints] in sync)
+        x1, y1, x2, y2 = ep
         make_link(e["a"], e["aif"], e["b"], e["bif"], x1, y1, x2, y2,
                   e["fwd"], e["rev"], e["a_oper"], e["b_oper"])
 
-    # edge-interface cards beneath each switch that has host-facing ports
+    # edge-interface lists. Leaves keep a single vertical column BELOW the switch;
+    # border-leaves/spines place a max-3-row grid to the SIDE (growing into columns) so
+    # the list never overlaps their downward inter-switch links. Placement geometry
+    # comes from layout["cards_meta"] so reserved canvas space and rendering agree.
+    cards_meta = layout.get("cards_meta", {})
     for name, ifaces in edge_ifaces.items():
         if name not in pos or not ifaces:
             continue
         p = pos[name]
-        card_top = p["cy"] + p["size"] / 2 + card["top_gap"]
-        box_h = len(ifaces) * card["row_h"] + 8
-        cards_svg.append(f'<rect x="{p["cx"]-CARD_W/2:.1f}" y="{card_top-16:.1f}" width="{CARD_W}" '
-                         f'height="{box_h+10:.1f}" rx="7" fill="{CARD_FILL}" stroke="{CARD_STROKE}" stroke-width="1"/>')
-        for i, ei in enumerate(ifaces):
-            yn = card_top + i * card["row_h"]
-            yv = yn + 14
-            n, iff = name, ei["iface"]
-            key = f"{n}:{iff}"
-            # interface name — colour by egress rate (no label -> text preserved)
-            cards_svg.append(_cell_text(f"edgename:{key}", p["cx"], yn, iff, size=11,
-                                        fill="#334155", weight="700", anchor="middle"))
-            cells.append({"id": f"edgename:{key}", "dataRef": ei["out"], "kind": "edgename"})
-            # in / out live values (label -> bps, colour by rate)
-            cards_svg.append(_text(p["cx"] - CARD_W / 2 + 12, yv, "in", size=9, fill="#94a3b8",
-                                   weight="600", anchor="start"))
-            cards_svg.append(_cell_text(f"edgein:{key}", p["cx"] - CARD_W / 2 + 26, yv, "rate",
-                                        size=10, anchor="start"))
-            cards_svg.append(_text(p["cx"] + 8, yv, "out", size=9, fill="#94a3b8",
-                                   weight="600", anchor="start"))
-            cards_svg.append(_cell_text(f"edgeout:{key}", p["cx"] + 28, yv, "rate",
-                                        size=10, anchor="start"))
-            cells.append({"id": f"edgein:{key}", "dataRef": ei["in"], "kind": "edgeval"})
-            cells.append({"id": f"edgeout:{key}", "dataRef": ei["out"], "kind": "edgeval"})
+        meta = cards_meta.get(name, {"orient": "below"})
+        if meta.get("orient") == "side":
+            cols, rows_max = meta["cols"], meta["rows_max"]
+            col_w, row_h = meta["col_w"], meta["row_h"]
+            box_x, card_top = meta["box_x"], meta["card_top"]
+            rows = min(len(ifaces), rows_max)
+            box_h = rows * row_h + 8
+            cards_svg.append(f'<rect x="{box_x:.1f}" y="{card_top-16:.1f}" width="{cols*col_w}" '
+                             f'height="{box_h+10:.1f}" rx="7" fill="{CARD_FILL}" stroke="{CARD_STROKE}" stroke-width="1"/>')
+            for i, ei in enumerate(ifaces):
+                col, row = i // rows_max, i % rows_max
+                col_left = (box_x + (cols - 1 - col) * col_w) if meta["side"] == "left" \
+                    else (box_x + col * col_w)
+                _emit_edge_cell(cards_svg, cells, name, ei, col_left + col_w / 2,
+                                card_top + row * row_h, col_w)
+        else:
+            card_top = p["cy"] + p["size"] / 2 + card["top_gap"]
+            box_h = len(ifaces) * card["row_h"] + 8
+            cards_svg.append(f'<rect x="{p["cx"]-CARD_W/2:.1f}" y="{card_top-16:.1f}" width="{CARD_W}" '
+                             f'height="{box_h+10:.1f}" rx="7" fill="{CARD_FILL}" stroke="{CARD_STROKE}" stroke-width="1"/>')
+            for i, ei in enumerate(ifaces):
+                _emit_edge_cell(cards_svg, cells, name, ei, p["cx"],
+                                card_top + i * card["row_h"], CARD_W)
 
     # ---- assemble ----
     fab = ", ".join(fabric_names or model.get("fabrics", []) or [])

@@ -68,7 +68,7 @@ def eth(n):
     return f"ethernet-1-{n}"
 
 
-def build(ns, fab_name, n_bl, n_spine, n_leaf, hosts_per_leaf):
+def build(ns, fab_name, n_bl, n_spine, n_leaf, hosts_per_leaf, hosts_per_bl=0):
     nodes, links = [], []
     bls = [f"{ns}-bl{i}" for i in range(1, n_bl + 1)]
     spines = [f"{ns}-spine{i}" for i in range(1, n_spine + 1)]
@@ -100,6 +100,11 @@ def build(ns, fab_name, n_bl, n_spine, n_leaf, hosts_per_leaf):
         base = n_spine  # uplinks occupy 1..n_spine
         for h in range(1, hosts_per_leaf + 1):
             links.append(edge(ns, lf, eth(base + h), f"host{h}"))
+    # border-leaves also carry host-facing ports (access edge) -> exercises the SIDE
+    # edge-interface card (grid beside the switch), distinct from the leaf below-card.
+    for b in bls:
+        for h in range(1, hosts_per_bl + 1):
+            links.append(edge(ns, b, eth(h), f"host{h}"))
 
     wrap = lambda items: {"apiVersion": "v1", "kind": "List", "items": items}
     json.dump(wrap(nodes), open(os.path.join(HERE, f"{ns}-toponodes.json"), "w"), indent=2)
@@ -108,6 +113,6 @@ def build(ns, fab_name, n_bl, n_spine, n_leaf, hosts_per_leaf):
     print(f"{ns}: {len(nodes)} nodes, {len(links)} topolinks -> fabric {fab_name}")
 
 
-build("ns1", "ns1-fabric", n_bl=2, n_spine=2, n_leaf=4, hosts_per_leaf=1)
+build("ns1", "ns1-fabric", n_bl=2, n_spine=2, n_leaf=4, hosts_per_leaf=1, hosts_per_bl=3)
 build("ns2", "ns2-fabric", n_bl=0, n_spine=4, n_leaf=8, hosts_per_leaf=1)
-build("ns3", "ns3-fabric", n_bl=1, n_spine=2, n_leaf=5, hosts_per_leaf=2)
+build("ns3", "ns3-fabric", n_bl=1, n_spine=2, n_leaf=5, hosts_per_leaf=2, hosts_per_bl=5)

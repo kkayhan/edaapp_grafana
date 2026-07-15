@@ -497,6 +497,192 @@
       "status": {
         "operationalState": "up"
       }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns1-bl1-host1",
+        "namespace": "ns1",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-1",
+              "node": "ns1-bl1",
+              "interfaceResource": "ns1-bl1-ethernet-1-1"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns1-bl1-host2",
+        "namespace": "ns1",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-2",
+              "node": "ns1-bl1",
+              "interfaceResource": "ns1-bl1-ethernet-1-2"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns1-bl1-host3",
+        "namespace": "ns1",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-3",
+              "node": "ns1-bl1",
+              "interfaceResource": "ns1-bl1-ethernet-1-3"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns1-bl2-host1",
+        "namespace": "ns1",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-1",
+              "node": "ns1-bl2",
+              "interfaceResource": "ns1-bl2-ethernet-1-1"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns1-bl2-host2",
+        "namespace": "ns1",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-2",
+              "node": "ns1-bl2",
+              "interfaceResource": "ns1-bl2-ethernet-1-2"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
+    },
+    {
+      "apiVersion": "core.eda.nokia.com/v1",
+      "kind": "TopoLink",
+      "metadata": {
+        "name": "ns1-bl2-host3",
+        "namespace": "ns1",
+        "labels": {
+          "role": "edge"
+        }
+      },
+      "spec": {
+        "links": [
+          {
+            "local": {
+              "interface": "ethernet-1-3",
+              "node": "ns1-bl2",
+              "interfaceResource": "ns1-bl2-ethernet-1-3"
+            },
+            "remote": {
+              "interface": "",
+              "node": "",
+              "interfaceResource": ""
+            },
+            "type": "edge"
+          }
+        ]
+      },
+      "status": {
+        "operationalState": "up"
+      }
     }
   ]
 }

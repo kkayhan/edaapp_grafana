@@ -137,7 +137,17 @@ def build_topology(toponodes, topolinks, fabrics=None, role_tiers=None):
             if not lnode:
                 continue
             if rnode:
-                add_switch_edge(lnode, lif, rnode, rif)
+                if lnode in nodes and rnode in nodes:
+                    add_switch_edge(lnode, lif, rnode, rif)
+                elif lnode in nodes:
+                    # Remote endpoint has no TopoNode in this fabric (stale, external,
+                    # or not-yet-onboarded, e.g. "leaf-3" when only leaf-1/leaf-2 exist).
+                    # We can't draw a switch-switch link to a node we don't render, so
+                    # surface the local port as a host-facing edge port instead of
+                    # emitting an unrenderable edge. Keeping such an edge in model[edges]
+                    # desynced it from layout[endpoints] downstream -> KeyError in svggen.
+                    add_edge_iface(lnode, lif)
+                # else: neither endpoint is a known node -> ignore entirely
             else:
                 add_edge_iface(lnode, lif)   # host-facing port -> listed under the switch
 

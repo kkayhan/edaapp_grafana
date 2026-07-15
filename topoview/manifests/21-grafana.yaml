@@ -30,7 +30,7 @@ spec:
           # Grafana's chrome is hidden so users only see the fabric menu + maps.
           # Plugins live in GF_PATHS_PLUGINS=/opt/... (set in the image) so the
           # emptyDir on /var/lib/grafana doesn't shadow them. No GF_INSTALL_PLUGINS.
-          image: ghcr.io/kkayhan/edaapp_grafana/topoview-grafana:v26.4.3-3
+          image: ghcr.io/kkayhan/edaapp_grafana/topoview-grafana:v26.4.1-1
           imagePullPolicy: IfNotPresent
           env:
             # read-only for humans, no login screen: land straight on the menu
