@@ -32,12 +32,13 @@ rules:
     resources: ["topoviewconfigs/status"]
     verbs: ["get", "update", "patch"]
   # EQL-direct telemetry: read the pre-existing EDA-core secrets needed to obtain
-  # an eda-api bearer token (password grant) for /core/query/v1/eql. Read-only,
-  # scoped to just these three secrets; the app ships none of them.
+  # an eda-api bearer token for /core/query/v1/eql. The controller uses the Keycloak
+  # master admin (keycloak-admin-secret) to self-provision an `eda-topoview` service
+  # account (password-free); no eda-realm-auth-secret. Read-only, scoped to two secrets.
   - apiGroups: [""]
     resources: ["secrets"]
     verbs: ["get"]
-    resourceNames: ["keycloak-admin-secret", "eda-api-ca", "eda-realm-auth-secret"]
+    resourceNames: ["keycloak-admin-secret", "eda-api-ca"]
   # Auto-detect the cluster's external host (never hardcoded) for Grafana's root URL.
   - apiGroups: ["core.eda.nokia.com"]
     resources: ["engineconfigs"]
