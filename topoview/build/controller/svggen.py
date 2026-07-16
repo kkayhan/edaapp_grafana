@@ -131,11 +131,14 @@ def _uid(name):
 
 def _emit_edge_cell(cards_svg, cells, node, ei, cx, name_y, width):
     """One edge-interface entry inside a card cell of the given width, centered on cx:
-    interface name (coloured by egress rate, no label) above a live in/out bps line."""
+    the display name (coloured by egress rate, no label) above a live in/out bps line.
+    The shown name is ei['label'] (e.g. the LAG name) but the cell id + dataRefs key on
+    the physical interface (ei['iface']), which is what the EQL feed reports."""
     iff = ei["iface"]
+    disp = ei.get("label") or iff
     key = f"{node}:{iff}"
     val_y = name_y + 14
-    cards_svg.append(_cell_text(f"edgename:{key}", cx, name_y, iff, size=11,
+    cards_svg.append(_cell_text(f"edgename:{key}", cx, name_y, disp, size=11,
                                 fill="#334155", weight="700", anchor="middle"))
     cells.append({"id": f"edgename:{key}", "dataRef": ei["out"], "kind": "edgename"})
     cards_svg.append(_text(cx - width / 2 + 12, val_y, "in", size=9, fill="#94a3b8",

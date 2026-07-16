@@ -36,7 +36,7 @@ import layout as layout_mod
 import svggen
 import topology as topo_mod
 
-VERSION = "v26.4.1-3"
+VERSION = "v26.4.1-4"
 
 RECONCILE_INTERVAL = int(os.environ.get("RECONCILE_INTERVAL", "30"))
 GRAFANA_URL = os.environ.get("GRAFANA_URL", "http://grafana.eda-system.svc.cluster.local:3000")
@@ -309,10 +309,16 @@ def reconcile(cfg):
         fabrics = k8s.list_cr_all_namespaces("fabrics.eda.nokia.com", "v1", "fabrics")
     except Exception:
         fabrics = []
+    # Interface CRs surface server-facing LAGs (spec.type: lag) that have no TopoLink.
+    try:
+        interfaces = k8s.list_cr_all_namespaces("interfaces.eda.nokia.com", "v1", "interfaces")
+    except Exception:
+        interfaces = []
 
     nodes_by = _by_ns(toponodes)
     links_by = _by_ns(topolinks)
     fabs_by = _by_ns(fabrics)
+    ifaces_by = _by_ns(interfaces)
 
     exclude = set(cfg["namespaceExclude"]) | SYSTEM_NS
     discovered = [ns for ns in nodes_by if ns not in exclude and nodes_by[ns]]
@@ -322,7 +328,8 @@ def reconcile(cfg):
         try:
             model = topo_mod.build_topology(nodes_by.get(ns, []), links_by.get(ns, []),
                                             fabrics=fabs_by.get(ns, []),
-                                            role_tiers=cfg["roleTiers"])
+                                            role_tiers=cfg["roleTiers"],
+                                            interfaces=ifaces_by.get(ns, []))
             if not model["nodes"]:
                 continue
             uid = f"topo-{ns}"
