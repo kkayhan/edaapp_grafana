@@ -2,7 +2,7 @@
 # installs on an air-gapped cluster with no grafana.com access), and Grafana's
 # chrome is hidden so users only see the fabric menu + dashboards.
 FROM grafana/grafana:12.0.2
-LABEL org.opencontainers.image.source="https://github.com/kkayhan/edaapp_grafana"
+LABEL org.opencontainers.image.source="https://github.com/kkayhan/eda-catalog"
 LABEL org.opencontainers.image.description="Grafana for EDA Grafana — flow-panel + infinity baked in (air-gap ready), chrome hidden"
 LABEL org.opencontainers.image.license="AGPL-3.0-only"
 USER root
