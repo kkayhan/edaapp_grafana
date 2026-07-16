@@ -1,0 +1,158 @@
+{
+  "description": "GrafanaConfig is the Schema for the grafanaconfigs API",
+  "type": "object",
+  "properties": {
+    "apiVersion": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "spec": {
+      "description": "Optional global tuning for Grafana. A single cluster-scoped instance named 'default' is auto-created by the controller.",
+      "type": "object",
+      "title": "Specification",
+      "properties": {
+        "namespaceExclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Namespaces to exclude",
+          "x-eda-nokia-com": {
+            "ui-order-priority": 100
+          }
+        },
+        "refresh": {
+          "type": "string",
+          "default": "5s",
+          "title": "Dashboard refresh interval",
+          "x-eda-nokia-com": {
+            "ui-order-priority": 200
+          }
+        },
+        "roleTiers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Role to row mapping",
+          "x-eda-nokia-com": {
+            "ui-order-priority": 300
+          }
+        },
+        "prometheusDatasourceUid": {
+          "type": "string",
+          "default": "PBFA97CFB590B2093",
+          "title": "Prometheus datasource uid (advanced)",
+          "x-eda-nokia-com": {
+            "ui-order-priority": 400
+          }
+        },
+        "thresholds": {
+          "type": "object",
+          "title": "Colour thresholds (advanced)",
+          "x-eda-nokia-com": {
+            "ui-order-priority": 500
+          },
+          "properties": {
+            "traffic": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string"
+                  },
+                  "level": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "color",
+                  "level"
+                ]
+              }
+            },
+            "operState": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "color": {
+                    "type": "string"
+                  },
+                  "level": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "color",
+                  "level"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "status": {
+      "type": "object",
+      "title": "Status",
+      "x-eda-nokia-com": {
+        "ui-visibility": "readOnly"
+      },
+      "properties": {
+        "health": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "lastReconcileTime": {
+          "type": "string"
+        },
+        "discoveredNamespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "menuDashboardUid": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "dashboards": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "namespace": {
+                "type": "string"
+              },
+              "uid": {
+                "type": "string"
+              },
+              "nodeCount": {
+                "type": "integer"
+              },
+              "linkCount": {
+                "type": "integer"
+              },
+              "generationHash": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

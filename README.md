@@ -1,6 +1,6 @@
-# EDA TopoView — auto-generated Grafana topology dashboards for Nokia EDA
+# EDA Grafana — auto-generated Grafana topology dashboards for Nokia EDA
 
-**TopoView** is a [Nokia EDA](https://docs.eda.dev/) application that turns any EDA-managed
+**Grafana** is a [Nokia EDA](https://docs.eda.dev/) application that turns any EDA-managed
 data-center fabric into a live Grafana **topology map** — automatically. Install it once, and it
 discovers every namespace that contains a fabric, draws the switch topology, wires up live
 per-interface telemetry, and keeps the dashboards in sync as the topology changes. No dashboards to
@@ -38,7 +38,7 @@ dependencies**: telemetry is read straight from EDA over EQL.
 
 ## How it works
 
-TopoView bundles just a **custom Grafana** (no Prometheus, no Loki — EDA has native logging) plus a
+Grafana bundles just a **custom Grafana** (no Prometheus, no Loki — EDA has native logging) plus a
 small Python controller. Everything installs into the `eda-system` namespace. The Grafana image has
 the two required plugins **baked in** — so it installs on an **air-gapped cluster** with no
 grafana.com access — and its chrome is **hidden**, so users only see the fabric menu and maps.
@@ -46,7 +46,7 @@ grafana.com access — and its chrome is **hidden**, so users only see the fabri
 ```
                               eda-system namespace
   ┌──────────────────────────────────────────────────────────────────┐
-  │  TopoView controller (Deployment + Service :8080)                 │
+  │  Grafana controller (Deployment + Service :8080)                 │
   │    every 30s: read TopoNode/TopoLink/Fabric  →  build model       │
   │               →  auto-layout  →  render SVG + flow-panel config    │
   │               →  push dashboard to Grafana (admin API)            │
@@ -80,13 +80,13 @@ grafana.com access — and its chrome is **hidden**, so users only see the fabri
 
 ```
 PROJECT                         edabuilder project descriptor
-topoview/
+grafana/
   manifest.yaml                 EDA app manifest (CRD + ordered cr: components)
-  api/v1alpha1/                 Go types for the TopoViewConfig CRD
+  api/v1alpha1/                 Go types for the GrafanaConfig CRD
   crds/  openapiv3/             generated CRD + OpenAPI schema
   build-grafana/                custom Grafana image: flow-panel + infinity baked in
     Dockerfile                  (air-gap ready) and chrome-hiding CSS injected
-    topoview-kiosk.css          CSS that hides Grafana's nav / controls
+    grafana-kiosk.css          CSS that hides Grafana's nav / controls
   build/
     Dockerfile                  controller image
     controller/                 the controller (Python, stdlib only)
@@ -108,7 +108,7 @@ examples/localtest/             offline generator harness + synthetic fabric fix
 
 ## Install
 
-Prerequisite: a Nokia EDA cluster (tested on **26.4.3**). No exporter app, no Prometheus — TopoView is
+Prerequisite: a Nokia EDA cluster (tested on **26.4.3**). No exporter app, no Prometheus — Grafana is
 self-contained. Everything installs into the `eda-system` namespace.
 
 ### From the EDA Store (recommended)
@@ -133,13 +133,13 @@ spec:
 kubectl apply -f catalog.yaml
 ```
 
-TopoView then appears in the EDA UI **Store** (or install headlessly with an `AppInstaller` CR for
-`appId: topoview.eda.edacommunity.com`, `catalog: kkayhan-catalog`, `version: v26.4.3-3`).
+Grafana then appears in the EDA UI **Store** (or install headlessly with an `AppInstaller` CR for
+`appId: grafana.eda.edacommunity.com`, `catalog: kkayhan-catalog`, `version: v26.4.3-3`).
 
 ### Air-gapped cluster (offline)
 
 Each release ships an **air-gap bundle** attached to the catalog repo's GitHub Release
-(`apps/topoview.eda.edacommunity.com/<version>`). It contains OCI archives of all three images
+(`apps/grafana.eda.edacommunity.com/<version>`). It contains OCI archives of all three images
 (bundle, controller, and the custom Grafana with its plugins baked in), a git bundle of the catalog,
 pre-filled `Registry` + `Catalog` manifests, and an `INSTALL-GUIDE.md`. On the Assets VM you `skopeo
 copy` the images into a local registry, push the catalog git bundle into a local Gitea, `kubectl
@@ -150,14 +150,14 @@ bundle's `INSTALL-GUIDE.md`.
 ### Manual deploy (dev)
 
 ```bash
-kubectl apply -f topoview/crds/
-kubectl apply -f topoview/manifests/          # all land in eda-system
+kubectl apply -f grafana/crds/
+kubectl apply -f grafana/manifests/          # all land in eda-system
 ```
 
 The controller does the rest automatically:
 
 - **EDA host is auto-detected.** The controller reads the cluster's external address from
-  `EngineConfig` and writes it into the `topoview-grafana-rooturl` ConfigMap, which Grafana's
+  `EngineConfig` and writes it into the `grafana-rooturl` ConfigMap, which Grafana's
   `GF_SERVER_ROOT_URL` references (`configMapKeyRef`). Because that value is owned by the controller
   — not baked into the Deployment — the EDA app-loader reasserting the bundle never rolls Grafana;
   the controller restarts it exactly once, only when the detected host actually changes. Nothing to
@@ -166,7 +166,7 @@ The controller does the rest automatically:
   cluster's own EDA secrets and serves the flow panel over its `/eql/<ns>.json` endpoint.
 
 For a manual deploy you may optionally set a real `admin-password` in
-`topoview/manifests/01-grafana-secret.yaml` (placeholder shipped; it only protects the controller's
+`grafana/manifests/01-grafana-secret.yaml` (placeholder shipped; it only protects the controller's
 write path — humans are anonymous read-only).
 
 ### Open it
@@ -177,7 +177,7 @@ baked-in CSS, so users only ever see the fabric menu and the maps — no `?kiosk
 
 ---
 
-## Configuration — `TopoViewConfig` (cluster-scoped singleton)
+## Configuration — `GrafanaConfig` (cluster-scoped singleton)
 
 You normally don't need to touch it — auto-discovery drives everything. It exists for global tuning
 and status. All spec fields are optional:
@@ -195,7 +195,7 @@ and status. All spec fields are optional:
 
 ## Notes
 
-- **Live values only.** TopoView reads current throughput + oper-state straight from EDA — there is
+- **Live values only.** Grafana reads current throughput + oper-state straight from EDA — there is
   no time-series history (that's the deliberate trade for dropping Prometheus). It's a live map, not
   a trends dashboard.
 - **Metrics are SR Linux (`.namespace.node.srl.interface.*`).** All-SRL fabrics today; SR OS /

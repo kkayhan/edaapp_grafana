@@ -1,0 +1,120 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: eda-system
+  labels:
+    app: grafana
+    eda.nokia.com/app-group: grafana
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+        eda.nokia.com/app-group: grafana
+    spec:
+      securityContext:
+        fsGroup: 472
+        runAsUser: 472
+        runAsGroup: 472
+      containers:
+        - name: grafana
+          # Custom Grafana: the flow-panel + infinity plugins are baked in (so the
+          # app installs on an air-gapped cluster with no grafana.com access), and
+          # Grafana's chrome is hidden so users only see the fabric menu + maps.
+          # Plugins live in GF_PATHS_PLUGINS=/opt/... (set in the image) so the
+          # emptyDir on /var/lib/grafana doesn't shadow them. No GF_INSTALL_PLUGINS.
+          image: ghcr.io/kkayhan/edaapp_grafana/grafana-server:v26.4.1-2
+          imagePullPolicy: IfNotPresent
+          env:
+            # read-only for humans, no login screen: land straight on the menu
+            - name: GF_AUTH_ANONYMOUS_ENABLED
+              value: "true"
+            - name: GF_AUTH_ANONYMOUS_ORG_ROLE
+              value: "Viewer"
+            - name: GF_AUTH_DISABLE_LOGIN_FORM
+              value: "true"
+            # basic auth stays on so the controller can WRITE dashboards
+            - name: GF_AUTH_BASIC_ENABLED
+              value: "true"
+            - name: GF_SECURITY_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-admin
+                  key: admin-user
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-admin
+                  key: admin-password
+            - name: GF_USERS_DEFAULT_THEME
+              value: "light"
+            - name: GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH
+              value: "/var/lib/grafana/dashboards/menu.json"
+            # Served behind the EDA HttpProxy under this path. The value is OWNED by
+            # the controller in the grafana-rooturl ConfigMap (it detects
+            # the cluster's external host from EngineConfig). Referencing the CM here
+            # keeps this Deployment spec stable, so the app-loader reasserting the
+            # bundle never rolls Grafana. optional: Grafana still boots before the
+            # controller has created the CM (the controller then restarts it once).
+            - name: GF_SERVER_ROOT_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: grafana-rooturl
+                  key: root_url
+                  optional: true
+            - name: GF_LOG_LEVEL
+              value: "warn"
+          ports:
+            - name: http
+              containerPort: 3000
+          volumeMounts:
+            - name: config
+              mountPath: /etc/grafana/provisioning/datasources/datasource.yml
+              subPath: datasource.yml
+            - name: config
+              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yml
+              subPath: dashboards.yml
+            - name: config
+              mountPath: /var/lib/grafana/dashboards/menu.json
+              subPath: menu.json
+            - name: storage
+              mountPath: /var/lib/grafana
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+      volumes:
+        - name: config
+          configMap:
+            name: grafana-config
+        - name: storage
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+  namespace: eda-system
+  labels:
+    app: grafana
+spec:
+  ports:
+    - port: 3000
+      targetPort: 3000
+  selector:
+    app: grafana

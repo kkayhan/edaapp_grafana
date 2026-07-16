@@ -1,6 +1,6 @@
 # Offline generator harness
 
-Run the TopoView generator (topology → SVG + Grafana dashboard) **without a cluster**, against
+Run the Grafana generator (topology → SVG + Grafana dashboard) **without a cluster**, against
 static CR JSON. Useful for validating layout changes on any fabric shape.
 
 ```bash
@@ -14,7 +14,7 @@ python3 run_local.py ns2          # or: test1 | ns1 | ns3
 python3 render.py ns2.svg ns2.png
 ```
 
-`run_local.py` imports the real controller modules from `../../topoview/build/controller/`, so what
+`run_local.py` imports the real controller modules from `../../grafana/build/controller/`, so what
 you see here is exactly what the running app produces.
 
 Fixtures (EDA `TopoNode` / `TopoLink` / `Fabric` CRs, in the shape EDA emits):

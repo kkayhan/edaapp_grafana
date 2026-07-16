@@ -6,7 +6,7 @@ import sys
 import xml.etree.ElementTree as ET
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CTRL = os.path.join(HERE, "..", "..", "topoview", "build", "controller")
+CTRL = os.path.join(HERE, "..", "..", "grafana", "build", "controller")
 sys.path.insert(0, CTRL)
 
 import topology
