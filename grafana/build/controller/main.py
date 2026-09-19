@@ -36,7 +36,7 @@ import layout as layout_mod
 import svggen
 import topology as topo_mod
 
-VERSION = "v26.4.1-5"
+VERSION = "v26.8.2-1"
 
 RECONCILE_INTERVAL = int(os.environ.get("RECONCILE_INTERVAL", "30"))
 GRAFANA_URL = os.environ.get("GRAFANA_URL", "http://grafana.eda-system.svc.cluster.local:3000")

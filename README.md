@@ -141,7 +141,7 @@ examples/localtest/             offline generator harness + synthetic fabric fix
 
 ## Install
 
-Prerequisite: a Nokia EDA cluster (tested on EDA **26.4.1** / **26.4.3**). No exporter app, no Prometheus — Grafana is
+Prerequisite: a Nokia EDA cluster (tested on EDA **26.8.2** with v26.8.2-1, and on **26.4.1** / **26.4.3** with the v26.4.1 line, branch `line/26.4.1`). No exporter app, no Prometheus — Grafana is
 self-contained. Everything installs into the `eda-system` namespace.
 
 ### From the EDA Store (recommended)
@@ -167,7 +167,7 @@ kubectl apply -f catalog.yaml
 ```
 
 Grafana then appears in the EDA UI **Store** (or install headlessly with an `AppInstaller` CR for
-`appId: grafana.eda.edacommunity.com`, `catalog: kkayhan-catalog`, `version: v26.4.1-5`).
+`appId: grafana.eda.edacommunity.com`, `catalog: kkayhan-catalog`, `version: v26.8.2-1`; on EDA 26.4.x use `v26.4.1-5`).
 
 ### Air-gapped cluster (offline)
 

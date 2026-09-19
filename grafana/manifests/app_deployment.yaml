@@ -28,7 +28,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: grafana-controller
-          image: ghcr.io/kkayhan/eda-catalog/grafana-controller:v26.4.1-5
+          image: ghcr.io/kkayhan/eda-catalog/grafana-controller:v26.8.2-1
           imagePullPolicy: IfNotPresent
           env:
             - name: POD_NAMESPACE
