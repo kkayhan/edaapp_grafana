@@ -22,14 +22,19 @@ try:
     fab = json.load(open(os.path.join(HERE, f"{NS}-fabrics.json")))["items"]
 except FileNotFoundError:
     fab = []
+try:
+    ifs = json.load(open(os.path.join(HERE, f"{NS}-interfaces.json")))["items"]
+except FileNotFoundError:
+    ifs = []
 
-model = topology.build_topology(tn, tl, fabrics=fab)
+model = topology.build_topology(tn, tl, fabrics=fab, interfaces=ifs)
 lay = layout_mod.compute_layout(model)
 svg, pc = svggen.generate(model, lay, NS, fabric_names=model["fabrics"])
 dash = dashboard.build_topology_dashboard(svg, pc, NS, fabric_names=model["fabrics"])
 menu = dashboard.build_menu_dashboard()
 
-print("edge_ifaces:", {k: [e["iface"] for e in v] for k, v in model["edge_ifaces"].items()})
+print("edge_ifaces:", {k: [f'{e.get("label")}({e["iface"]})' for e in v]
+                       for k, v in model["edge_ifaces"].items()})
 
 print("=== nodes (name: role/tier -> row @ cx,cy) ===")
 for name, n in sorted(model["nodes"].items(), key=lambda kv: (lay["nodes"][kv[0]]["row"], lay["nodes"][kv[0]]["cx"])):
